@@ -5,7 +5,7 @@
 	"year": 2022,
 	"contributor": "Ed James - Reinke lab",
 	"date_created": "2022/10/20"
-}
+},
 
 "licenses": [
 {
@@ -13,7 +13,7 @@
         "id": 1,
         "name": "Attribution-NonCommercial License"
     },
-	]
+	],
 
 "images": [
     {        "license": 1,
@@ -1345,13 +1345,11 @@
         "width": 2757,
         "id": "rb782u_DMSO_-15"
     },
-
-
-    ]
+],
 
 "categories": [
     {"supercategory": "worm","id": 0,"name": "worm"}
-	]
+	],
 	
 "annotations": [
 {
