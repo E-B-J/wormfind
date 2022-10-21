@@ -1,9 +1,9 @@
 {
 "info": {
-	"description": "COCO format dapi worm dataset v1_train. 48hr worms"
-	"version": "0.1"
-	"year": 2022
-	"contributor": "Ed James - Reinke lab"
+	"description": "COCO format dapi worm dataset v1_train. 48hr worms",
+	"version": "0.1",
+	"year": 2022,
+	"contributor": "Ed James - Reinke lab",
 	"date_created": "2022/10/20"
 }
 
