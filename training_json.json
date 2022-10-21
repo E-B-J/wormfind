@@ -12,8 +12,8 @@
         "url": "http://creativecommons.org/licenses/by-nc/2.0/",
         "id": 1,
         "name": "Attribution-NonCommercial License"
-    },
-	],
+    }
+],
 
 "images": [
     {        "license": 1,
@@ -1344,7 +1344,7 @@
         "height": 2208,
         "width": 2757,
         "id": "rb782u_DMSO_-15"
-    },
+    }
 ],
 
 "categories": [
