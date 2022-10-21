@@ -1,3 +1,4 @@
+{
 "info": {
 	"description": "COCO format dapi worm dataset v1_train. 48hr worms"
 	"version": "0.1"
@@ -43,7 +44,7 @@
         "id": "rb782i_-ctl_"
     },
 
-    {        "license": 1,
+    {   	"license": 1,
         "file_name": "rb782i_-ctl_-02.png",
         "height": 2208,
         "width": 2757,
@@ -14834,4 +14835,4 @@
 	"bbox": [174 102 256 461],
 }
 ]
-		
+}		

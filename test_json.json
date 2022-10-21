@@ -1,3 +1,4 @@
+{
 "info": {
 	"description": "COCO format dapi worm dataset v1_test. 48hr worms, ngm, sph, dmso"
 	"version": "0.1"
@@ -1964,3 +1965,4 @@
 }	
 
 ]
+}
