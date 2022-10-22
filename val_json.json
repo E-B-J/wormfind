@@ -13,7 +13,7 @@
         "id": 1,
         "name": "Attribution-NonCommercial License"
     }
-	],
+],
 
 "images": [
     {        "license": 1,
@@ -1346,7 +1346,6 @@
         "id": "rb782u_DMSO_-15"
     },
 ],
-
 "categories": [
     {"supercategory": "worm",
 	"id": 0,
