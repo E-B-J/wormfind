@@ -193,9 +193,12 @@
 ],
 
 "categories": [
-    {"supercategory": "worm","id": 0,"name": "worm"}
-	],
-	
+    {
+		"supercategory": "worm",
+		"id": 0,
+		"name": "worm"
+	}
+],
 "annotations": [
 	{	"id":  000104530238,
 		"category_id": 0,
