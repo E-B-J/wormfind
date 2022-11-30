@@ -60,32 +60,158 @@ def seg_transpose(wormbbox, embryo_seg):
 working_dir = "C:/Users/ebjam/Desktop/labeled/test/"
 transposed_embryo_out = {"annotations": [], "categories": [{'supercategory': 'embryo', 'id': 1, 'name': 'embryo'}], "images": []}
 wormcount = 0
-embryo_count = 0
-hitcount=0
 with open("C:/Users/ebjam/Desktop/labeled/test.json") as test_json:
     test_set = json.load(test_json)
-    dump_dict = {"annotations": []}
+    dump_dict = {"annotations": [], "images": [], "categories": [{'supercategory': 'embryo', 'id': 1, 'name': 'embryo'}]}
     hitno = 0
-    for q in range(0, len(test_set["images"])): #q is an image within the dataset
-        im = cv2.imread(working_dir + test_set["images"][q]["file_name"])
-        imid = test_set["images"][q]["id"]
+    super_giant_embryo_list = [i for i in test_set["annotations"] if i["category_id"] == 1] # All embryos in every image
+    for q in range(0, len(test_set["images"])): #for each image within the dataset
+        im = cv2.imread(working_dir + test_set["images"][q]["file_name"]) #load the image with cv2
+        imid = test_set["images"][q]["id"] #get the image ID to call all embryos and worms in the image
         print(q)
         print(imid)
         imagewormlist = [] #make empty list of worms for this image
         imageemblist = [] #make empty list of embryos for this image
-        super_giant_embryo_list = [i for i in test_set["annotations"] if i["category_id"] == 1]
-        imagewormlist = [i for i in test_set["annotations"] if i["category_id"] == 2 and i["image_id"] == imid]
-        for w in imagewormlist:
+        imagewormlist = [i for i in test_set["annotations"] if i["category_id"] == 2 and i["image_id"] == imid] #All worms just within an image
+        for w in imagewormlist: #For each worm within the image
             one_worm_embryos = [i for i in super_giant_embryo_list if bbox_relation(w["bbox"], i["bbox"]) == True]
+            crop_bbox = w["bbox"]
+            cropim = im[math.floor(crop_bbox[1]):math.ceil(crop_bbox[1] + crop_bbox[3]), math.floor(crop_bbox[0]):math.ceil(crop_bbox[0]+crop_bbox[2])]
+            cv2.imwrite(working_dir + test_set["images"][q]["file_name"][0:-4] + "_totalworm_" + str(wormcount) + ".png", cropim)
+            keyname = test_set["images"][q]["file_name"][0:-4] + "_totalworm_" + str(wormcount) + ".png" #setting the save name as a variable to store
+            imdict = {} #empty image dictionary to be made for newly cropped image
+            imdict["height"] = crop_bbox[3]
+            imdict["width"] = crop_bbox[2]
+            imdict["id"] = wormcount #id = count of worms from 0 - n-1
+            imdict["file_name"] = keyname
+            dump_dict["images"].append(imdict)
+            #print(one_worm_embryos)
             for e in range(0, len(one_worm_embryos)):
-                one_worm_embryos[e]["bbox"] = bbox_transpose(w["bbox"], one_worm_embryos[e]["bbox"])
-                one_worm_embryos[e]["segmentation"] = seg_transpose(w["bbox"], one_worm_embryos[e]["segmentation"])
-                one_worm_embryos[e]["id"] = hitno
+                temp_store = {}
+                temp_store["bbox"] = bbox_transpose(w["bbox"], one_worm_embryos[e]["bbox"])
+                #one_worm_embryos[e]["bbox"] = bbox_transpose(w["bbox"], one_worm_embryos[e]["bbox"])
+                temp_store["segmentation"] = seg_transpose(w["bbox"], one_worm_embryos[e]["segmentation"])
+                #one_worm_embryos[e]["segmentation"] = seg_transpose(w["bbox"], one_worm_embryos[e]["segmentation"])
+                temp_store["id"] = hitno
+                #one_worm_embryos[e]["id"] = hitno
+                #print(one_worm_embryos[e]["id"])
+                #one_worm_embryos[e]["image_id"] = wormcount
+                temp_store["image_id"] = wormcount
                 print("hit number:", hitno)
                 hitno +=1 
-                dump_dict["annotations"].append(one_worm_embryos[e])
+                dump_dict["annotations"].append(temp_store)
+            wormcount +=1
+            
+#%%
+with open(working_dir + "worm_by_worm_embryo_test_transposed.json", "w") as outfile: #End of the "for j..." loop on line 59(or close to) - j iterates over worms
+    json.dump(dump_dict, outfile, indent=4)            
+#%%
+dump_dict = {"annotations": [], "images": [], "categories": [{'supercategory': 'embryo', 'id': 1, 'name': 'embryo'}]}
+working_dir = "C:/Users/ebjam/Desktop/labeled/test/"
+ann_to_image_dict = {"img0_annlist": [], "img1_annlist": [], "img2_annlist": [], "img3_annlist": [], "img4_annlist": [], "img5_annlist": []}
+embryo_to_image_dict = {"img0_emblist": [], "img1_emblist": [], "img2_emblist": [], "img3_emblist": [], "img4_emblist": [], "img5_emblist": []}
+
+wormcount = 0
+embryocount = 0
+with open("C:/Users/ebjam/Desktop/labeled/test.json") as test_json:
+    test_set = json.load(test_json)
+    super_giant_embryo_list = [i for i in test_set["annotations"] if i["category_id"] == 1]
+    enumerated_embs = enumerate(super_giant_embryo_list)
+    for ele in enumerated_embs:  
+        #print(ele[1]["image_id"])
+        if ele[1]["image_id"] == 0:
+            embryo_to_image_dict["img0_annlist"].append(ele[1])
+        if ele[1]["image_id"] == 1:
+            embryo_to_image_dict["img1_annlist"].append(ele[1])
+        if ele[1]["image_id"] == 2:
+            embryo_to_image_dict["img2_annlist"].append(ele[1])
+        if ele[1]["image_id"] == 3:
+            embryo_to_image_dict["img3_annlist"].append(ele[1])
+        if ele[1]["image_id"] == 4:
+            embryo_to_image_dict["img4_annlist"].append(ele[1])
+        if ele[1]["image_id"] == 5:
+            embryo_to_image_dict["img5_annlist"].append(ele[1])
+    super_giant_worm_list = [i for i in test_set["annotations"] if i["category_id"] == 2]
+    enumerated_worms = enumerate(super_giant_worm_list)
+    for ele in enumerated_worms:  
+        #print(ele[1]["image_id"])
+        if ele[1]["image_id"] == 0:
+            embryo_to_image_dict["img0_emblist"].append(ele[1])
+        if ele[1]["image_id"] == 1:
+            embryo_to_image_dict["img1_emblist"].append(ele[1])
+        if ele[1]["image_id"] == 2:
+            embryo_to_image_dict["img2_emblist"].append(ele[1])
+        if ele[1]["image_id"] == 3:
+            embryo_to_image_dict["img3_emblist"].append(ele[1])
+        if ele[1]["image_id"] == 4:
+            embryo_to_image_dict["img4_emblist"].append(ele[1])
+        if ele[1]["image_id"] == 5:
+            embryo_to_image_dict["img5_emblist"].append(ele[1])
+    for key in embryo_to_image_dict:
+        current_image_set = embryo_to_image_dict[key]
+        wormimgid = current_image_set[0]["image_id"]
+        image_worm_list = [i for i in current_image_set if i["category_id"] == 2]
+        #image_embryo_list = [i for i in current_image_set if i["category_id"] == 1]
+        for image in test_set["images"]:
+            if image["id"] == wormimgid:
+                image_name = image["file_name"]
+        im = cv2.imread(working_dir + image_name)
+        for i in image_worm_list:
+            
+            single_worm_dict = {"annotations": []}
+            single_worm_bbox = i["bbox"]
+            crop_image = im[math.floor(single_worm_bbox[1]):math.ceil(single_worm_bbox[1] + single_worm_bbox[3]), math.floor(single_worm_bbox[0]):math.ceil(single_worm_bbox[0]+single_worm_bbox[2])]
+            cv2.imwrite(working_dir + image_name + "_worm_" + str(wormcount) + ".png", crop_image)
+            keyname = image_name + "_worm_" + str(wormcount) + ".png" #setting the save name as a variable to store
+            imdict = {} #empty image dictionary to be made for newly cropped image
+            imdict["height"] = single_worm_bbox[3]
+            imdict["width"] = single_worm_bbox[2]
+            imdict["id"] = wormcount #id = count of worms from 0 - n-1
+            imdict["file_name"] = keyname
+            dump_dict["images"].append(imdict)
+            image_embryo_list = [i for i in current_image_set if i["category_id"] == 1]
+            for embryo in image_embryo_list:
+                embryobbox = embryo["bbox"]
+                if bbox_relation(single_worm_bbox, embryobbox):
+                    single_worm_dict["annotations"].append(embryo) ##UNTRANSPOSED + unrenamed
+                    
+            print(len(single_worm_dict["annotations"]))    
+            for single_a in range(0, len(single_worm_dict["annotations"])):
+                notran = single_worm_dict["annotations"][single_a]["bbox"]
+                transposedbbox = bbox_transpose(single_worm_bbox, single_worm_dict["annotations"][single_a]["bbox"])
+                transposed_segmentation = seg_transpose(single_worm_bbox, single_worm_dict["annotations"][single_a]["segmentation"])
+                transpo_dict = single_worm_dict["annotations"][single_a]
+                transpo_dict["bbox"] = transposedbbox
+                transpo_dict["segmentation"] = transposed_segmentation
+                transpo_dict["image_id"] = wormcount
+                transpo_dict["id"] = embryocount
+                dump_dict["annotations"].append(transpo_dict)
+                embryocount+=1
+                    
+            wormcount+=1
+            
+    
+
+#%%
+img0list = embryo_to_image_dict["img0_emblist"]
+        #%%
+allstruc = {}
+for ite in range(0, len(super_giant_worm_list)):
+    worm = super_giant_worm_list[ite]
+    wormlist = []
+    for embryo in super_giant_embryo_list:
+        if bbox_relation(worm["bbox"], embryo["bbox"]) == True:
+            print(ite)
+            print("hit")
+            wormlist.append(embryo)
+    allstruc["worm" + str(ite)] = wormlist
             #%%
-    dump_dict["categories"]
+with open(working_dir + "worm_by_worm_embryo_test_transposed.json", "w") as outfile: #End of the "for j..." loop on line 59(or close to) - j iterates over worms
+    json.dump(dump_dict, outfile, indent=4)
+            #%%
+print(test_set["images"][q]["file_name"][0:-4] + "_totalworm_" + str(wormcount))      
+            #%%
+    dump_dict["categories"] = [{'supercategory': 'embryo', 'id': 1, 'name': 'embryo'}]
     dump_dict["images"]
             
 
