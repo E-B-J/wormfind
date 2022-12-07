@@ -26,3 +26,15 @@ import json
 
 with open(img_dir + "72_train_.json", "w") as outfile:
     json.dump(img_collection, outfile)
+    
+#%%
+with open("C:/Users/ebjam/Documents/GitHub/wormfind/train_json_4872.json") as json_data:
+        current_json = json.load(json_data)
+        annotation_ID = []
+        for i in range(0, len(current_json['annotations'])):
+               currentID = current_json['annotations'][i]['id']
+               print(currentID)
+               annotation_ID.append(currentID)
+               
+#%%
+print(set([x for x in annotation_ID if annotation_ID.count(x) > 1]))
