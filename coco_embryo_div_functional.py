@@ -7,6 +7,7 @@ completed... nov 30
 #Imports
 import json
 import math
+from pycocotools.coco import COCO
 import cv2
 
 #%%
@@ -34,6 +35,7 @@ def seg_transpose(wormbbox, embryo_seg):
         embryo_seg[0][y] = embryo_seg[0][y] - wormbbox[y%2]
     return(embryo_seg)
 #%%
+'''
 working_dir = "C:/Users/ebjam/Desktop/labeled/test/"
 transposed_embryo_out = {"annotations": [], "categories": [{'supercategory': 'embryo', 'id': 1, 'name': 'embryo'}], "images": []}
 wormcount = 0
@@ -77,4 +79,20 @@ with open("C:/Users/ebjam/Desktop/labeled/test.json") as test_json:
                 
             wormcount +=1
 with open(working_dir + "worm_by_worm_embryo_test_transposed.json", "w") as outfile: #End of the "for j..." loop on line 59(or close to) - j iterates over worms
-    json.dump(dump_dict, outfile, indent=4)            
+    json.dump(dump_dict, outfile, indent=4)      
+'''
+#%%
+working_dir = "C:/Users/ebjam/Desktop/labeled/test/"
+transposed_embryo_out = {"annotations": [], "categories": [{'supercategory': 'embryo', 'id': 1, 'name': 'embryo'}], "images": []}
+wormcount = 0
+hitno = 0 #set up hitno - used to numebr embryos to avoid duplicates for single embryos that appear in two worm boxes
+dump_dict = {"annotations": [], "images": [], "categories": [{'supercategory': 'embryo', 'id': 1, 'name': 'embryo'}]} #make empty dump dict
+with open("C:/Users/ebjam/Desktop/labeled/test.json") as test_json:
+    test_set = json.load(test_json) #make big json readable object
+    for q in range(0, len(test_set["images"])): #for each image within the dataset
+        im = cv2.imread(working_dir + test_set["images"][q]["file_name"]) #load the image with cv2
+        imid = test_set["images"][q]["id"] #get the image ID to call all embryos and worms in the image
+        imageemblist = [a for a in test_set["annotations"] if a["category_id"] == 1 and a ["image_id"] == imid]
+        imagewormlist = [b for b in test_set["annotations"] if b["category_id"] == 2 and b["image_id"] == imid] #All worms just within an image
+        for w in imagewormlist: #For each worm within the image
+             one_worm_embryos = [c for c in imageemblist if bbox_relation(w["bbox"], c["bbox"]) == True]
