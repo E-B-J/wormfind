@@ -23,6 +23,7 @@ from skimage import data, segmentation, feature, future
 from sklearn.ensemble import RandomForestClassifier
 from functools import partial
 import cv2
+import joblib
 
 #%%Test images
 
@@ -83,6 +84,8 @@ fig.tight_layout()
 img_new = cv2.imread("D:/2022-10-24/correct_dy96/indi_worm/72hrn2i_25u_worm_2.png")
 gimg_new = cv2.cvtColor(img_new, cv2.COLOR_BGR2GRAY)
 features_new = features_func(gimg_new)
+#%%Currently works on no-embryos!!
+joblib.dump(clf, "C:/Users/ebjam/Documents/GitHub/wormfind/model01_20221213.joblib")
 #%%
 result_new = future.predict_segmenter(features_new, clf)
 #%%
