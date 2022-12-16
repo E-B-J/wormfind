@@ -53,9 +53,9 @@ Currently, I think it only needs working dir and annFile as variables,
 '''
 
 #Directory where files will be dumped, and where imput images are
-working_dir = "C:/Users/ebjam/Desktop/labeled/test/"
+working_dir = "D:/2022-11-15/train/"
 #Annotation file for images
-annFile = "C:/Users/ebjam/Desktop/labeled/test.json"
+annFile = "D:/2022-11-15/train/96hr_labels_correct_im.json"
 #dump dict looks like a java object, but it really a python dictionary we're going to be saving at the end
 dump_dict = {"image": [], "categories": [], "annotations": [], }
 coco=COCO(annFile) #load via cocoapi
