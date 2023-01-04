@@ -16,19 +16,21 @@ example gt: "D:/2022-10-24/correct_dy96/indi_worm/thresholded/72hrn2i_25u_worm_1
 """
 
 #%% Imports for random forest
-
-import numpy as np
-import matplotlib.pyplot as plt
-from skimage import data, segmentation, feature, future
-from sklearn.ensemble import RandomForestClassifier
-from functools import partial
-import cv2
-import joblib
+import os #accessing files
+import numpy as np #image and number handling
+import matplotlib.pyplot as plt #showing images
+from skimage import data, segmentation, feature, future #RF tools
+from sklearn.ensemble import RandomForestClassifier # RF
+from functools import partial #Feature gen
+from math import ceil
+import cv2 #Image handling
+import joblib #Saving/loading model
 
 #%%Test images
 
-image = cv2.imread("D:/2022-10-24/correct_dy96/indi_worm/72hrn2i_25u_worm_1.png")
-gimage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+image2 = cv2.imread("D:/2022-10-24/correct_dy96/indi_worm/72hrn2i_25u_worm_2.png")
+gimage2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+x, y = gimage.shape
 #%%
 training_labels = cv2.imread("D:/2022-10-24/correct_dy96/indi_worm/thresholded/72hrn2i_25u_worm_1threshold.png")
 #training labels are 0(background) or 255(microsporidia) - process to 1 = background and 2 for 225
@@ -40,11 +42,119 @@ b[b == 0] = 1
 b[b == 255] = 2
 #b is now prepped for the random forest
 #%%Need to cat all the features and labels together
+#%%
+def images_and_truths(path):
+    '''
+    
 
-#add features to list to store them
+    Parameters
+    ----------
+    path : Path to folder continaing individual worm images - the images used to generate each feature stack.
+    the ground truths should be stored in a subfolder within this folder - "thresholded"
 
+    Returns
+    -------
+    images - a list of image files
+    gts - a list of ground truth files that should be in that subfolder
+    path - a hand back of the path variable 
+
+    '''
+    allfiles = os.listdir(path) #List all files in folder
+    images = [q for q in allfiles if q.endswith(".png")] #List comprehension to only take png files
+    gtholder = images.copy() #A copy to let us mess with image names while keeping the list safe
+    gts = [e[:-4]+"threshold.png" for e in gtholder] #List comprehesnion to make list of GTs **in same order as image list**.
+    return(images, gts, path)#giveback images, gts, and path
+#%%
+def get_average_image_dimensions(images, path):
+    '''
+    
+
+    Parameters
+    ----------
+    images : list of individual worm images
+    path : path to individual images
+
+    Returns
+    -------
+    average x and y, rounded UP to the nearest integer.
+
+    '''
+    xs = [] #Empty list for x coords
+    ys = [] #Empty list for y coords
+    for t in images: #t is an image in list
+        image = cv2.imread(path + t) #Open 't' iteration
+        x,y,z = image.shape #get image shape
+        xs.append(x) #add x to x coords
+        ys.append(y) #add y to y coords
+    average_x = ceil(sum(xs)/len(xs)) #take average and ceiling it
+    average_y = ceil(sum(ys)/len(ys)) #take average and ceiling it
+    return(average_x, average_y) #return ceiling averages
+
+    
+def generate_features_concatinate_features(images, path):
+    '''
+    Parameters
+    ----------
+    images : list of image files - the files used to generate features
+    path to image folder.
+
+    Returns
+    -------
+    concatinated feature set for training RF
+    '''
+    dim = get_average_image_dimensions(images, path)
+    feature_cat = np.empty((587, 582, 15))
+    for r in range(0, len(images)):
+        image = cv2.imread(path+images[r])
+        gimage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gimage_uniform = cv2.resize(gimage, dim, interpolation=cv2.INTER_AREA)
+        newfeatures = features_func(gimage_uniform)
+        feature_cat = np.concatenate((feature_cat, newfeatures), 0)
+    return(feature_cat)
+sigma_max = 16
+sigma_min = 1
+features_func = partial(feature.multiscale_basic_features,
+                        intensity=True, edges=False, texture=True,
+                        sigma_min=sigma_min, sigma_max=sigma_max)
+def reshape_images_feature_gen_cat_out(path):
+    images, gts, path = images_and_truths(path)
+    feature_cat = generate_features_concatinate_features(images, path)
+    return(feature_cat)
+#%%
+feature_cat = reshape_images_feature_gen_cat_out("D:/2022-10-24/correct_dy96/indi_worm/")
+#%%
+images, gts, path = images_and_truths("D:/2022-10-24/correct_dy96/indi_worm/")
+average_x, average_y = get_average_image_dimensions(images, path)
+
+#%%
+
+sigma_max = 16
+sigma_min = 1
+features_func = partial(feature.multiscale_basic_features,
+                        intensity=True, edges=False, texture=True,
+                        sigma_min=sigma_min, sigma_max=sigma_max)
+
+def generate_features_concatinate_features(images, path):
+    '''
+    Parameters
+    ----------
+    images : list of image files - the files used to generate features
+    path to image folder.
+
+    Returns
+    -------
+    concatinated feature set for training RF
+    '''
+    feature_cat = np.empty(582, 587)
+    for r in range(0, len(images)):
+        image = cv2.imread(path+images[r])
+        gimage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gimage_uniform = cv2.resize(image, (582, 587), interpolation=cv2.INTER_AREA)
+        newfeatures = features_func(gimage_uniform)
+        feature_cat = np.concatenate((feature_cat, newfeatures), 0)
+        
 #%%z = list of all features
-
+feature_cat = np.append((features, features2), 0)
 #%%z1 = np.concatenate((z[i] for i in range(0, len(z)), 1)
 
 
@@ -61,7 +171,8 @@ features_func = partial(feature.multiscale_basic_features,
                         sigma_min=sigma_min, sigma_max=sigma_max)
 
 #%%
-features = features_func(gimage)
+
+features2 = features_func(gimage2)
 #%%
 clf = RandomForestClassifier(n_estimators=50, n_jobs=-1,
                              max_depth=10, max_samples=0.05)
