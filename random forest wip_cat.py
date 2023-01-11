@@ -20,6 +20,9 @@ from functools import partial #Feature gen
 from math import ceil
 import cv2 #Image handling
 import joblib #Saving/loading model
+import matplotlib.patches as mpatches
+import matplotlib.lines as mlines
+import matplotlib.markers as mmarkers
 #%%
 path = "D:/2022-10-24/correct_dy96/indi_worm/gravid/threshold/"
 allfiles = os.listdir(path)
@@ -142,16 +145,66 @@ del gts
 b[b == 0] = 1
 b[b == 255] = 2
 
-feature_train, feature_test, gts_train, gts_test = train_test_split(feature_cat, b, test_size=0.9, random_state=5320)
+feature_train, feature_test, gts_train, gts_test = train_test_split(feature_cat, b, test_size=0.8, random_state=5320)
 del feature_cat
 del b
 del feature_test
 del gts_test
-#%%
-clf = RandomForestClassifier(n_estimators=25, n_jobs=-1,
-                             max_depth=9, max_samples=0.05)
 
-clf = future.fit_segmenter(gts_train, feature_train, clf)
+#%%
+model1_feat_train, model1_feat_test, model1_label_train, model1_label_test = train_test_split(feature_train, gts_train, test_size = 0.5)
+#%%
+clf = RandomForestClassifier(n_estimators=100, n_jobs=-1,
+                             max_depth=10, max_samples=0.05)
+#%%
+clf = future.fit_segmenter(model1_label_train, model1_feat_train, clf)
+
+#%%
+l = len(clf.feature_importances_)
+feature_importance = (
+        clf.feature_importances_[:l//3],
+        clf.feature_importances_[l//3:2*l//3],
+        clf.feature_importances_[2*l//3:])
+
+sigmas = np.logspace(
+        np.log2(sigma_min), np.log2(sigma_max),
+        num=int(np.log2(sigma_max) - np.log2(sigma_min) + 1),
+        base=2, endpoint=True)
+
+fig, ax = plt.subplots(1, 2, figsize=(9, 4))
+
+
+ax[0].plot(sigmas, feature_importance[0], 'D', color = 'k', label = "Intensity")
+ax[0].set_title("Intensity features")
+ax[0].set_xlabel("$\\sigma$")
+ax[0].set_ylabel("Feature Importance")
+
+ax[1].plot(sigmas, feature_importance[1], 'o', color = 'b', label = "Edges via gradient intensity")
+ax[1].plot(sigmas, feature_importance[2], 's', color = 'r', label = "Structure")
+ax[1].set_title("Texture features")
+ax[1].set_xlabel("$\\sigma$")
+ax[1].set_ylabel("Feature Importance")
+
+mean_importance = sum(clf.feature_importances_)/l #(always going to be 1 / l but good to check?)
+ax[0].axhline(y=mean_importance, color='darkgrey', linestyle='--')
+ax[1].axhline(y=mean_importance, color='darkgrey', linestyle='--')
+
+D = mlines.Line2D([], [], color='k', marker='D', linestyle='None',
+                          markersize=10, label='Intensity')
+o = mlines.Line2D([], [], color='b', marker='o', linestyle='None',
+                          markersize=10, label='Intensity Gradient')
+s = mlines.Line2D([], [], color='r', marker='s', linestyle='None',
+                          markersize=10, label='Structure')
+mean_importance = mlines.Line2D([], [], color='darkgrey', marker = 'D', linestyle='--',
+                          markersize=0, label='Mean Feature importance')
+
+fig.legend(loc = "upper center",handles=[D, o, s, mean_importance], bbox_to_anchor=(0.5, 1.04), ncol=4, fancybox=True)
+
+#%% From feature importance plot - probably dont need sigma 2, 4, 16 in intensity. Might not need intensity gradient 1, 4. Might not need structure 1, 8
+#%%
+ax[0].plot(sigmas, feature_importance[::3], 'o'),
+ax[0].set_title("Intensity features")
+ax[0].set_xlabel("$\\sigma$")
 #%%
 joblib.dump(clf, "C:/Users/ebjam/Documents/GitHub/wormfind/model02_20230104.joblib")
 #%%
