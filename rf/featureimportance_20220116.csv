@@ -1,0 +1,76 @@
+﻿Model,Trees,Branches,Sigma,Feature_Importance,Category,Eigen_sigma
+20230113_100_trees_10_branches.joblib,100,10,1,0.00988834,Eigen Value 1,Eigen Value 1_1
+20230113_100_trees_10_branches.joblib,100,10,2,0.00710624,Eigen Value 1,Eigen Value 1_2
+20230113_100_trees_10_branches.joblib,100,10,4,0.00311352,Eigen Value 1,Eigen Value 1_4
+20230113_100_trees_10_branches.joblib,100,10,8,0.00141622,Eigen Value 1,Eigen Value 1_8
+20230113_100_trees_10_branches.joblib,100,10,16,0.000834921,Eigen Value 1,Eigen Value 1_16
+20230113_200_trees_10_branches.joblib,200,10,1,0.0120516,Eigen Value 1,Eigen Value 1_1
+20230113_200_trees_10_branches.joblib,200,10,2,0.00675618,Eigen Value 1,Eigen Value 1_2
+20230113_200_trees_10_branches.joblib,200,10,4,0.00292622,Eigen Value 1,Eigen Value 1_4
+20230113_200_trees_10_branches.joblib,200,10,8,0.0012298,Eigen Value 1,Eigen Value 1_8
+20230113_200_trees_10_branches.joblib,200,10,16,0.000827214,Eigen Value 1,Eigen Value 1_16
+20230113_200_trees_12_branches.joblib,200,12,1,0.00784851,Eigen Value 1,Eigen Value 1_1
+20230113_200_trees_12_branches.joblib,200,12,2,0.00643496,Eigen Value 1,Eigen Value 1_2
+20230113_200_trees_12_branches.joblib,200,12,4,0.00401825,Eigen Value 1,Eigen Value 1_4
+20230113_200_trees_12_branches.joblib,200,12,8,0.00184674,Eigen Value 1,Eigen Value 1_8
+20230113_200_trees_12_branches.joblib,200,12,16,0.00160899,Eigen Value 1,Eigen Value 1_16
+20230113_200_trees_14_branches.joblib,200,14,1,0.00949642,Eigen Value 1,Eigen Value 1_1
+20230113_200_trees_14_branches.joblib,200,14,2,0.00757792,Eigen Value 1,Eigen Value 1_2
+20230113_200_trees_14_branches.joblib,200,14,4,0.00444269,Eigen Value 1,Eigen Value 1_4
+20230113_200_trees_14_branches.joblib,200,14,8,0.00320385,Eigen Value 1,Eigen Value 1_8
+20230113_200_trees_14_branches.joblib,200,14,16,0.0028077,Eigen Value 1,Eigen Value 1_16
+20230113_60_trees_10_branches.joblib,60,10,1,0.0159867,Eigen Value 1,Eigen Value 1_1
+20230113_60_trees_10_branches.joblib,60,10,2,0.00822133,Eigen Value 1,Eigen Value 1_2
+20230113_60_trees_10_branches.joblib,60,10,4,0.00367165,Eigen Value 1,Eigen Value 1_4
+20230113_60_trees_10_branches.joblib,60,10,8,0.00203703,Eigen Value 1,Eigen Value 1_8
+20230113_60_trees_10_branches.joblib,60,10,16,0.000819969,Eigen Value 1,Eigen Value 1_16
+20230113_100_trees_10_branches.joblib,100,10,1,0.0314589,Eigen Value 2,Eigen Value 2_1
+20230113_100_trees_10_branches.joblib,100,10,2,0.040841,Eigen Value 2,Eigen Value 2_2
+20230113_100_trees_10_branches.joblib,100,10,4,0.0210242,Eigen Value 2,Eigen Value 2_4
+20230113_100_trees_10_branches.joblib,100,10,8,0.00528768,Eigen Value 2,Eigen Value 2_8
+20230113_100_trees_10_branches.joblib,100,10,16,0.00119609,Eigen Value 2,Eigen Value 2_16
+20230113_200_trees_10_branches.joblib,200,10,1,0.0280972,Eigen Value 2,Eigen Value 2_1
+20230113_200_trees_10_branches.joblib,200,10,2,0.0435315,Eigen Value 2,Eigen Value 2_2
+20230113_200_trees_10_branches.joblib,200,10,4,0.019226,Eigen Value 2,Eigen Value 2_4
+20230113_200_trees_10_branches.joblib,200,10,8,0.00508608,Eigen Value 2,Eigen Value 2_8
+20230113_200_trees_10_branches.joblib,200,10,16,0.00125707,Eigen Value 2,Eigen Value 2_16
+20230113_200_trees_12_branches.joblib,200,12,1,0.0305324,Eigen Value 2,Eigen Value 2_1
+20230113_200_trees_12_branches.joblib,200,12,2,0.0174225,Eigen Value 2,Eigen Value 2_2
+20230113_200_trees_12_branches.joblib,200,12,4,0.0114108,Eigen Value 2,Eigen Value 2_4
+20230113_200_trees_12_branches.joblib,200,12,8,0.00626542,Eigen Value 2,Eigen Value 2_8
+20230113_200_trees_12_branches.joblib,200,12,16,0.00194507,Eigen Value 2,Eigen Value 2_16
+20230113_200_trees_14_branches.joblib,200,14,1,0.060605,Eigen Value 2,Eigen Value 2_1
+20230113_200_trees_14_branches.joblib,200,14,2,0.0129261,Eigen Value 2,Eigen Value 2_2
+20230113_200_trees_14_branches.joblib,200,14,4,0.00975489,Eigen Value 2,Eigen Value 2_4
+20230113_200_trees_14_branches.joblib,200,14,8,0.00646976,Eigen Value 2,Eigen Value 2_8
+20230113_200_trees_14_branches.joblib,200,14,16,0.00311428,Eigen Value 2,Eigen Value 2_16
+20230113_60_trees_10_branches.joblib,60,10,1,0.0208473,Eigen Value 2,Eigen Value 2_1
+20230113_60_trees_10_branches.joblib,60,10,2,0.0318736,Eigen Value 2,Eigen Value 2_2
+20230113_60_trees_10_branches.joblib,60,10,4,0.0270744,Eigen Value 2,Eigen Value 2_4
+20230113_60_trees_10_branches.joblib,60,10,8,0.00664129,Eigen Value 2,Eigen Value 2_8
+20230113_60_trees_10_branches.joblib,60,10,16,0.00117863,Eigen Value 2,Eigen Value 2_16
+20230113_100_trees_10_branches.joblib,100,10,1,0.262776,Intensity,Intensity_1
+20230113_100_trees_10_branches.joblib,100,10,2,0.235458,Intensity,Intensity_2
+20230113_100_trees_10_branches.joblib,100,10,4,0.182645,Intensity,Intensity_4
+20230113_100_trees_10_branches.joblib,100,10,8,0.140862,Intensity,Intensity_8
+20230113_100_trees_10_branches.joblib,100,10,16,0.0560919,Intensity,Intensity_16
+20230113_200_trees_10_branches.joblib,200,10,1,0.278123,Intensity,Intensity_1
+20230113_200_trees_10_branches.joblib,200,10,2,0.233647,Intensity,Intensity_2
+20230113_200_trees_10_branches.joblib,200,10,4,0.155574,Intensity,Intensity_4
+20230113_200_trees_10_branches.joblib,200,10,8,0.132617,Intensity,Intensity_8
+20230113_200_trees_10_branches.joblib,200,10,16,0.0790513,Intensity,Intensity_16
+20230113_200_trees_12_branches.joblib,200,12,1,0.289986,Intensity,Intensity_1
+20230113_200_trees_12_branches.joblib,200,12,2,0.221414,Intensity,Intensity_2
+20230113_200_trees_12_branches.joblib,200,12,4,0.184112,Intensity,Intensity_4
+20230113_200_trees_12_branches.joblib,200,12,8,0.123435,Intensity,Intensity_8
+20230113_200_trees_12_branches.joblib,200,12,16,0.0917195,Intensity,Intensity_16
+20230113_200_trees_14_branches.joblib,200,14,1,0.331021,Intensity,Intensity_1
+20230113_200_trees_14_branches.joblib,200,14,2,0.172578,Intensity,Intensity_2
+20230113_200_trees_14_branches.joblib,200,14,4,0.184644,Intensity,Intensity_4
+20230113_200_trees_14_branches.joblib,200,14,8,0.0972669,Intensity,Intensity_8
+20230113_200_trees_14_branches.joblib,200,14,16,0.0940909,Intensity,Intensity_16
+20230113_60_trees_10_branches.joblib,60,10,1,0.291581,Intensity,Intensity_1
+20230113_60_trees_10_branches.joblib,60,10,2,0.232602,Intensity,Intensity_2
+20230113_60_trees_10_branches.joblib,60,10,4,0.177544,Intensity,Intensity_4
+20230113_60_trees_10_branches.joblib,60,10,8,0.113754,Intensity,Intensity_8
+20230113_60_trees_10_branches.joblib,60,10,16,0.0661679,Intensity,Intensity_16

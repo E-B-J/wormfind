@@ -20,6 +20,7 @@ import matplotlib.lines as mlines #Visualization util
 import random
 
 #%%Functions
+'''
 def test_train_division(path):
     """
     selects and moves test and train images to folders.
@@ -35,31 +36,32 @@ def test_train_division(path):
 
     """
     all_files = os.listdir(path)
-    
     images = [q for q in all_files if q.endswith(".png")] #Only take png files
     print(len(images))
     train_draw=15
     trainset = random.sample(images, k=train_draw)
-    for file in trainset:
-        images.remove(file)
-    '''
     print("Splitting off trainset of ", train_draw, " images.")
     for image in trainset:
         os.rename(path + image, path + "train/" + image)
         gt = path + "thresholded/" + image[:-4] + "threshold.png"
         os.rename(gt, path + "train/thresholded/" + image[:-4] + "threshold.png")
     print("Moved trainset to subfolder.")
-    
     all_files_minus_train = os.listdir(path)
-    '''
-    images_no_train = images.copy()
-    print(len(images_no_train))
-    testset = random.choices(images_no_train, k=50)
-    return(trainset, testset)
+    images_minus_train = [w for w in all_files_minus_train if w.endswith(".png")]
+    testset = random.sample(images_minus_train, k=train_draw)
+    for image in testset:
+        os.rename(path + image, path + "train/" + image)
+        gt = path + "thresholded/" + image[:-4] + "threshold.png"
+        os.rename(gt, path + "train/thresholded/" + image[:-4] + "threshold.png")
+    print(len(images_minus_train))
+    testpath = path + "test/"
+    trainpath = path + "train/"
+    return(trainpath, testpath)
 
 #%%
 
 a, b = test_train_division("D:/2022-10-24/correct_dy96/indi_worm/gravid/")
+'''
 #%%
 def images_and_truths(path):
     '''
@@ -78,9 +80,7 @@ def images_and_truths(path):
     '''
     allfiles = os.listdir(path) #List all files in folder
     images = [q for q in allfiles if q.endswith(".png")] #Only take png files
-    gtholder = images.copy() #Mess with image names while keeping the list safe
-    gts = [e[:-4]+"threshold.png" for e in gtholder] #List of GTs **in same order as image list**.
-    return(images, gts, path)#giveback images, gts, and path
+    return(images)#giveback images, gts, and path
 
 def get_average_image_dimensions(images, path):
     '''
@@ -103,13 +103,13 @@ def get_average_image_dimensions(images, path):
     average_x = ceil(sum(xs)/len(xs)) #take average and ceiling it
     average_y = ceil(sum(ys)/len(ys)) #take average and ceiling it
     return(average_x, average_y) #return ceiling averages
-
+#%%
 sigma_max = 16
 sigma_min = 1
 features_func = partial(feature.multiscale_basic_features,
                         intensity=True, edges=False, texture=True,
                         sigma_min=sigma_min, sigma_max=sigma_max)
-
+#%%
 def generate_features_concatinate_features_gts(images, path):
     '''
     Parameters
@@ -131,7 +131,7 @@ def generate_features_concatinate_features_gts(images, path):
         gimage_uniform = cv2.resize(gimage, dim, interpolation=cv2.INTER_AREA)
         newfeatures = features_func(gimage_uniform)
         feature_cat = np.concatenate((feature_cat, newfeatures), 0)
-        traininglabel = cv2.imread(path + "threshold/"+images[r][:-4] + "threshold.png")
+        traininglabel = cv2.imread(path + "thresholded/"+images[r][:-4] + "threshold.png")
         tl_uniform = cv2.resize(traininglabel, dim, interpolation = cv2.INTER_AREA)
         traininglabels = np.concatenate((traininglabels, tl_uniform), 0)
     return(feature_cat, traininglabels)
@@ -149,13 +149,13 @@ def reshape_images_feature_gen_cat_out(path):
     feature_cat :  Concatenated features
     gts :  Concatenated ground truths
     '''
-    train_path, test_path = test_train_division(path)
-    images, gts, path = images_and_truths(train_path)
+    images = images_and_truths(path)
     feature_cat, gts = generate_features_concatinate_features_gts(images, path)
     return(feature_cat, gts)
 #%%Random Forest
+
 #Generate concatenated features and groundtruths
-feature_cat, gts = reshape_images_feature_gen_cat_out("D:/2022-10-24/correct_dy96/indi_worm/gravid/")
+feature_cat, gts = reshape_images_feature_gen_cat_out("D:/2022-10-24/correct_dy96/indi_worm/gravid/train/")
 
 #Groundtruths were loaded as multichannel - split out one channel
 b,g,r = cv2.split(gts)
@@ -169,33 +169,38 @@ Convert training labels to be a little more RF friendly
 
 Class 1 is background
 Class 2 is microsporidia
+
 '''
 b[b == 0] = 1
 b[b == 255] = 2
-
-#Total file is too big for training, need to reduce it a little. Stratify to conserve label distribution
-feature_train, feature_test, gts_train, gts_test = train_test_split(feature_cat, b, test_size=0.8, stratify=b, random_state=5320)
-
-#Delete arrays we don't need to free up some memory
-del feature_cat
-del b
-del feature_test
-del gts_test
-
-#Further split subsample into smaller bits - still stratify and seed
-model1_feat_train, model1_feat_test, model1_label_train, model1_label_test = train_test_split(feature_train, gts_train, test_size = 0.5, stratify=gts_train, randomstate=5321)
-
-#Delete arrays we don't need anymore to free up some memory
-del feature_train
-del gts_train
-
+#%%
 #Make classifier
 clf = RandomForestClassifier(n_estimators=100, n_jobs=-1,
-                             max_depth=10, max_samples=0.05, oob_score = True)
+                             max_depth=10)
+#%%
+#Train classifier - full fat, all features.
+clf = future.fit_segmenter(b, feature_cat, clf)
 
-#Train classifier - full fat!
-clf = future.fit_segmenter(model1_label_train, model1_feat_train, clf)
+#%%
 
+
+#%%
+'''
+intensities = []
+sobel_edges = []
+structures = []
+#%%
+current_clf = joblib.load("C:/Users/ebjam/Documents/GitHub/wormfind/model02_20230113_100_trees_20_branches.joblib")
+
+#%%
+l = len(current_clf.feature_importances_)
+intensities.append(current_clf.feature_importances_[:l//3]) #Intensity features
+sobel_edges.append(current_clf.feature_importances_[l//3:2*l//3]) # Sobel edge addition
+structures.append(current_clf.feature_importances_[2*l//3:]) # Structure features
+
+#%%
+del(current_clf)
+#%%
 #%%
 y_pred_test = clf.predict(model1_feat_test)
 accuracy_score(model1_feat_test, y_pred_test)
@@ -208,7 +213,7 @@ feature_importance = (
         clf.feature_importances_[:l//3], #intensity
         clf.feature_importances_[l//3:2*l//3], #Sobel edge
         clf.feature_importances_[2*l//3:]) # Structure
-
+#%%
 sigmas = np.logspace(
         np.log2(sigma_min), np.log2(sigma_max),
         num=int(np.log2(sigma_max) - np.log2(sigma_min) + 1),
@@ -245,5 +250,5 @@ mean_importance = mlines.Line2D([], [], color='darkgrey', marker = 'D', linestyl
                           markersize=0, label='Mean Feature importance')
 fig.legend(loc = "upper center",handles=[D, o, s, mean_importance], bbox_to_anchor=(0.5, 1.04), ncol=4, fancybox=True)
 #%%Save model
-joblib.dump(clf, "C:/Users/ebjam/Documents/GitHub/wormfind/model02_20230104.joblib")
+joblib.dump(clf, "C:/Users/ebjam/Documents/GitHub/wormfind/model02_20230113_100_trees_20_branches.joblib")
 
