@@ -63,41 +63,92 @@ selected_polygon = None
 def on_canvas_click(event):
     global selected_polygon
     global unsaved_changes
-    # Find the polygon closest to the mouse click
-    closest_polygon = None
-    closest_distance = float('inf')
-    for canvas_item in plotted_masks:
-        distance = canvas.find_closest(event.x, event.y, halo=5, start=canvas_item)[0]
-        if distance < closest_distance:
-            closest_polygon = canvas_item
-            closest_distance = distance
-
-    # If a polygon was found, select it
-    if closest_polygon is not None:
-        selected_polygon = closest_polygon
-
-        # Change the color of the selected polygon to green
-        canvas.itemconfig(selected_polygon, fill="yellow")
-        
-    if unsaved_changes == 0:
-        unsaved_changes = 1
-        save_button = Button(root, text = "Save worms", command = save_worms)
-        save_button.grid(row=1, column = 2)
+    global add_mode
+    global points
+    
+    if add_mode == 0:
+        # Find the polygon closest to the mouse click
+        closest_polygon = None
+        closest_distance = float('inf')
+        for canvas_item in plotted_masks:
+            distance = canvas.find_closest(event.x, event.y, halo=5, start=canvas_item)[0]
+            if distance < closest_distance:
+                closest_polygon = canvas_item
+                closest_distance = distance
+    
+        # If a polygon was found, select it
+        if closest_polygon is not None:
+            selected_polygon = closest_polygon
+    
+            # Change the color of the selected polygon to green
+            canvas.itemconfig(selected_polygon, fill="yellow")
+            
+        if unsaved_changes == 0:
+            unsaved_changes = 1
+            save_button = Button(root, text = "Save worms", command = save_worms)
+            save_button.grid(row=1, column = 2)
+    elif add_mode == 1:
+        x, y = ((event.x, event.y))
+        points.append((x, y))
+        #Show the point clicked on!
+        canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill="red")
+        #Draw line between points if possible
+        if len(points) >= 2:
+            canvas.create_line(points[-2][0], points[-2][1], x, y, fill="red")   
 # Bind the mouse click event to the canvas
 canvas.bind("<Button-1>", on_canvas_click)
 
 def delete_selected_polygon():
     global selected_polygon
     global plotted_masks
-
+    global unsaved_changes
     # If a polygon is selected, delete its canvas item
     if selected_polygon is not None:
         canvas.delete(selected_polygon)
         plotted_masks.remove(selected_polygon)
         selected_polygon = None
+        unsaved_changes = 1
 
 # Bind the delete key to the function to delete the selected polygon
 root.bind("<Delete>", delete_selected_polygon)
+
+#Set up functions to draw new polygons
+"""
+Need to turn on edit mode, record mouse click, plot polygon, and update plotted_masks
+
+"""
+points = []
+add_mode =0
+
+#Turn on edit mode
+def addnew():
+    global points
+    global add_mode
+    if add_mode == 0:
+        add_mode = 1
+    elif add_mode == 1:
+        add_mode = 0
+        points.clear()
+        
+
+canvas.bind("<Key-n>", addnew)
+
+#Function to add newly drawn polygon to list of polygons - False negative curation
+def on_key(event):
+    global unsaved_changes
+    global points
+    if event.keysym == "Return":
+        polygon = points.copy()
+        polygon.append(polygon[0]) #Close the loop
+        polygon_id = canvas.create_polygon(polygon, fill="", outline="red")
+        plotted_masks.append((polygon))
+        points.clear()
+        unsaved_changes = 1
+
+# Bind the key event to the on_key function
+canvas.bind("<Key>", on_key)
+
+
 
 
 # Define the function to be called when the "Next" button is clicked
