@@ -44,7 +44,6 @@ canvas.create_image(0, 0, image=image, anchor=NW)
 #Get masks
 masks = seg_record["results"][current_image_index].masks
 
-#Add cluster filter here!!
 
 for mask in masks:
     segment = mask.segment
@@ -58,6 +57,9 @@ for mask in masks:
 
 # Define a variable to store the currently selected polygon
 selected_polygon = None
+points = []
+add_mode =0
+scale = 1
 
 # Define a function to handle mouse clicks on the canvas
 def on_canvas_click(event):
@@ -82,6 +84,8 @@ def on_canvas_click(event):
     
             # Change the color of the selected polygon to green
             canvas.itemconfig(selected_polygon, fill="yellow")
+            for point in selected_polygon:
+                canvas.create_oval(point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5, fill="orange")
             
         if unsaved_changes == 0:
             unsaved_changes = 1
@@ -112,13 +116,28 @@ def delete_selected_polygon():
 # Bind the delete key to the function to delete the selected polygon
 root.bind("<Delete>", delete_selected_polygon)
 
+
+#Zoom functions from chatGPT
+def zoom_in(event):
+    global scale
+    scale *= 1.1
+    canvas.scale("all", event.x, event.y, scale, scale)
+
+def zoom_out(event):
+    global scale
+    scale *= 0.9
+    canvas.scale("all", event.x, event.y, scale, scale)
+
+canvas.bind("<Button-4>", zoom_in) # bind zoom_in function to mouse scroll up event
+canvas.bind("<Button-5>", zoom_out) # bind zoom_out function to mouse scroll down event
+
+
 #Set up functions to draw new polygons
 """
 Need to turn on edit mode, record mouse click, plot polygon, and update plotted_masks
 
 """
-points = []
-add_mode =0
+
 
 #Turn on edit mode
 def addnew():
