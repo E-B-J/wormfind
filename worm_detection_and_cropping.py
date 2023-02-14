@@ -86,7 +86,7 @@ def run_worm_detection(inputfolder, model_path):
 #Run the model! Set inputs here!
 inputpath = "C:/Users/ebjam/Downloads/gui testers-20230213T211340Z-001/gui testers/"
 pathtomodel = "C:/Users/ebjam/Downloads/best.pt"
-full_image_results, worm_by_worm_results = run_worm_detection(inputpath, pathtomodel)
+full_image_results, worm_by_worm_results, img_list = run_worm_detection(inputpath, pathtomodel)
 
 #Save the results!!
 with open(inputpath + 'full_image_results.pickle', 'wb') as handle:

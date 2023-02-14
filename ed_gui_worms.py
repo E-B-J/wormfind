@@ -10,6 +10,8 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 import pickle
 import os
+from tkinter import ttk
+import tkinter as tk
 
 #Load info from last piece of code - dict opject, item 1 - list of files, item 2 = list of results from theose files
 start_folder = "C:/Users/ebjam/Downloads/gui testers-20230213T211340Z-001/gui testers"
@@ -19,9 +21,61 @@ file = open(index_segmentation_record,'rb')
 seg_record = pickle.load(file)
 imglist = seg_record["image_titles"]
 
-#%%Make photoimage objects
+#Make photoimage objects
 # Create the window and canvas
 root = Tk()
+container = ttk.Frame(root, width = 2752, height = 2208)
+canvas = tk.Canvas(container)
+scrollbary = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+scrollbarx = ttk.Scrollbar(container, orient="horizontal", command=canvas.xview)
+scrollable_frame = ttk.Frame(canvas, height = 1400, width = 1000)
+
+scrollable_frame.bind(
+    "<Configure>",
+    lambda e: canvas.configure(
+        scrollregion=canvas.bbox("all")
+    )
+)
+
+canvas.create_window((0, 0), window=scrollable_frame, anchor="nw", width = 2752, height = 2208)
+
+canvas.configure(yscrollcommand=scrollbary.set)
+canvas.configure(xscrollcommand=scrollbarx.set)
+
+img = ImageTk.PhotoImage(Image.open("C:/Users/ebjam/Downloads/gui testers-20230213T211340Z-001/gui testers/72hrn2i_25u-08.png"))
+
+label = Label(scrollable_frame, image = img, width = 2752, height = 2208).pack()
+container.pack()
+scrollbary.pack(side="right", fill="y")
+scrollbarx.pack(side="bottom", fill = "x")
+
+root.mainloop()
+
+
+#%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#%%Add a frame to hold the image
 
 images = []
 for img in imglist:
@@ -37,29 +91,39 @@ unsaved_changes = 0
 
 # Load the first image
 image_view = images[current_image_index]
-canvas = Canvas(root, width=image_view.width(), height=image_view.height())
+canvas = Canvas(root, width=image_view.width()/2, height=image_view.height()/2)
 canvas.grid(row=0, column=0)
 # Display the image on the canvas
 canvas.create_image(0, 0, image=image_view, anchor=NW)
-
-h=Scrollbar(root, orient='horizontal')
-h.grid(row=1, column=0, sticky='ew')
-
-root.mainloop()
 
 
 #Get masks
 masks = seg_record["results"][current_image_index].masks
 segs = masks.segments
 
+# Define a variable to store the currently selected polygon
+selected_polygon = None
+points = []
+add_mode =0
+
+
 for seg in segs:
+    points = []
     for point in seg:
+        point=point.tolist()
         point[0] = point[0] * 2752
+        points.append(point[0])
         point[1] = point[1] * 2208
-    xpoints = [point[0] for point in seg]
-    ypoints = [point[1] for point in seg]
-    canvas_item = canvas.create_polygon(xpoints, ypoints, fill='red')
+        points.append(point[1])
+    #xpoints = [point[0] for point in seg]
+    #ypoints = [point[1] for point in seg]
+    canvas_item = canvas.create_polygon(points, fill='red')
     plotted_masks.append(canvas_item)
+  
+
+next_button = Button(root, text=">>", command=root.quit)
+next_button.grid(row=0, column=1)
+root.mainloop()
 #%%
 
 for mask in masks:
