@@ -24,10 +24,7 @@ import pickle
 import csv
 import json
 #Tracability import
-from datetime import date
 
-#Get today's date
-today = date.today()
 
 model_string = "/path/to/model/"
 input_folder = "path/to/folder/full/of/cropped/DY96worms" 

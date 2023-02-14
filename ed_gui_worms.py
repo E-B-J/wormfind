@@ -6,44 +6,61 @@ Created on Wed Feb  8 13:27:23 2023
 """
 
 from tkinter import *
+from tkinter import filedialog
 from PIL import Image, ImageTk
 import pickle
+import os
 
-#%%Load info from last piece of code - dict opject, item 1 - list of files, item 2 = list of results from theose files
-start_folder = filedialog.askdirectory()
-full_image_pickle = ""
+#Load info from last piece of code - dict opject, item 1 - list of files, item 2 = list of results from theose files
+start_folder = "C:/Users/ebjam/Downloads/gui testers-20230213T211340Z-001/gui testers"
+full_image_pickle = "full_image_results.pickle"
 index_segmentation_record = os.path.join(start_folder, full_image_pickle)
 file = open(index_segmentation_record,'rb')
 seg_record = pickle.load(file)
 imglist = seg_record["image_titles"]
 
-#%%Tkinter
-# Define the list of images
-images = imglist
+#%%Make photoimage objects
+# Create the window and canvas
+root = Tk()
 
+images = []
+for img in imglist:
+    image = ImageTk.PhotoImage(Image.open(os.path.join(start_folder, img)))
+    images.append(image)
+print(image.width())
+print(image.height())
 #Plotted masks storage
 plotted_masks = []
 # Initialize the current image index
 current_image_index = 0
 unsaved_changes = 0
 
-# Create the window and canvas
-root = Tk()
-canvas = Canvas(root, width=images[0].width, height=images[0].height)
-canvas.grid(row=0, column=0, columnspan=2)
-
 # Load the first image
-image = Image.open(images[current_image_index])
-
-# Convert the image to a PhotoImage object
-image = ImageTk.PhotoImage(image)
-
+image_view = images[current_image_index]
+canvas = Canvas(root, width=image_view.width(), height=image_view.height())
+canvas.grid(row=0, column=0)
 # Display the image on the canvas
-canvas.create_image(0, 0, image=image, anchor=NW)
+canvas.create_image(0, 0, image=image_view, anchor=NW)
+
+h=Scrollbar(root, orient='horizontal')
+h.grid(row=1, column=0, sticky='ew')
+
+root.mainloop()
+
 
 #Get masks
 masks = seg_record["results"][current_image_index].masks
+segs = masks.segments
 
+for seg in segs:
+    for point in seg:
+        point[0] = point[0] * 2752
+        point[1] = point[1] * 2208
+    xpoints = [point[0] for point in seg]
+    ypoints = [point[1] for point in seg]
+    canvas_item = canvas.create_polygon(xpoints, ypoints, fill='red')
+    plotted_masks.append(canvas_item)
+#%%
 
 for mask in masks:
     segment = mask.segment
@@ -248,14 +265,15 @@ def prev_image():
     status.grid(row=2, column = 0, columnspan = 4)
     
 def save_worms():
+    global plotted_masks
+    global seg_record
+    global images
+    global current_image_index   
+    global unsaved_changes
     if unsaved_changes == 1:
         dumpdict = {}
         #Crop worms here
-        global plotted_masks
-        global seg_record
-        global images
-        global current_image_index   
-        global unsaved_changes
+        
         validated_segmentation = []
         for mask in plotted_masks:
             seg_points = []
@@ -287,17 +305,7 @@ prev_button.grid(row=1, column=3)
 status = Label(root, text = "Image " + str(current_image_index+1) + " of " + str(len(imglist)+1), bd=1, relief=SUNKEN, anchor=E)
 status.grid(row=2, column = 0, columnspan = 4)
 
-#Scroll Bars
-scrollbar_x = tk.Scrollbar(root, orient='horizontal', command=canvas.xview)
-scrollbar_y = tk.Scrollbar(root, orient='vertical', command=canvas.yview)
 
-# Configure the canvas to use the scrollbars
-canvas.configure(xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
-
-# Grid the canvas, scrollbars, and their parent frames
-canvas.grid(row=0, column=0, sticky='nsew')
-scrollbar_x.grid(row=1, column=0, sticky='ew')
-scrollbar_y.grid(row=0, column=1, sticky='ns')
 
 # Start the Tkinter event loop
 root.mainloop()
