@@ -97,7 +97,7 @@ class ScrollableImage(tkinter.Frame):
             self.cnvs.yview_scroll(int(-1*(evt.delta/120)), 'units') # For windows
     
     def shift_scroll(self, sevt): #!!!
-        self.log.xview_scroll((sevt.delta/120), "units") #!!!
+        self.cnvs.xview_scroll((sevt.delta/120), "units") #!!!
         
     
     def change_image_f(self, event):
@@ -142,6 +142,19 @@ class ScrollableImage(tkinter.Frame):
             self.cnvs.config(scrollregion=self.cnvs.bbox('all'))
         
     def change_mode(self, mevent):
+        all_poly_with_drawn = self.cnvs.find_withtag("mask") #Write something to make the drawn in polygons persist here!
+        for poly in all_poly_with_drawn:
+            fill_color = self.cnvs.itemcget(poly, 'fill')
+            if fill_color == "red":
+                self.cnvs.itemconfig(poly, fill="")
+                self.cnvs.delete("line")
+                self.polygon_visibility = False
+            else:
+                self.cnvs.itemconfig(poly, fill='red')
+                self.polygon_visibility = True
+               
+                '''      previous mode toggle:     - didn't preserve newly drawn polygons
+                    
         if self.polygon_visibility:
             self.cnvs.delete("mask")
             self.cnvs.delete("points")
@@ -159,6 +172,7 @@ class ScrollableImage(tkinter.Frame):
                     points.append(point[1])
                 self.cnvs.create_polygon(points, fill='red', tags = "mask")
             self.polygon_visibility = True
+    '''
     
     def draw_polygon(self, event):
         if not self.right_click_coords:
@@ -173,7 +187,7 @@ class ScrollableImage(tkinter.Frame):
         #Deal with ending polygon
         startpoint = self.right_click_coords[0]
         if len(self.right_click_coords) >= 3:
-            if (x - startpoint[0])**2 + (y - startpoint[1])**2 < 100:
+            if (x - startpoint[0])**2 + (y - startpoint[1])**2 < 300:
                 # Close polygon and remove temporary line
                 self.cnvs.create_line(self.right_click_coords[-1][0], self.right_click_coords[-1][1],
                                   startpoint[0], startpoint[1], fill="red", tags="line")
