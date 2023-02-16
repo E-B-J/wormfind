@@ -203,8 +203,9 @@ class ScrollableImage(tkinter.Frame):
             self.cnvs.itemconfig("mask", fill="red")
 
     def save_worms(self, event):
-        annotations = {"single_worms": []}
+        annotations = {"single_worms": [], "input_image": ""}
         title = self.image_titles[self.current_image_index]
+        annotations["input_image"] = title
         #DY96img = cv2.imread(start_folder + "DY96/" + title)
         polygons = self.cnvs.find_withtag("mask")
         save_gon = []
