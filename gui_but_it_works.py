@@ -243,16 +243,18 @@ class ScrollableImage(tkinter.Frame):
             save_gon.append(points)
             annotation["title"] = title
             annotation["wormID"] = save_title
-            annotation["bbox"] = self.cnvs.bbox(polygon)
+            annotation["bbox"] = self.cnvs.bbox(polygon) # (Top left to bottom right)
             annotation["segmentation"] = points
             annotation["transposed_segmentation"] = transpose_segmentation(annotation["bbox"], annotation["segmentation"])
             annotations["single_worms"].append(annotation)
             #worm_crop = DY96img[int(annotation["bbox"][1]):int(annotation["bbox"][3]), int(annotation["bbox"][0]):int(annotation["bbox"][2])]
             #cv2.imwrite(start_folder + "DY96/"+ save_title+ ".png", worm_crop)
             with open(start_folder + "DY96/" + title[:-4] + ".result", "wb") as f:
-                pickle.dump(annotation, f, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump(annotations, f, protocol=pickle.HIGHEST_PROTOCOL)
             worm_no +=1
-        messagebox.showinfo("Save", "file saved")            
+        messagebox.showinfo("Save", "File saved.")
+
+
 
 root = tk.Tk()
 
