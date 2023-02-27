@@ -6,12 +6,12 @@ Created on Mon Feb  6 11:43:13 2023
 """
 # ML imports
 from ultralytics import YOLO
-from skimage import feature, future, segmentation #RF tools
+from skimage import feature, future #RF tools
 from sklearn.ensemble import RandomForestClassifier # The RF itself
 # Image/array handling imports
 import cv2
 from shapely.geometry import Point, Polygon
-import rasterio.features
+#import rasterio.features
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 import numpy
@@ -19,21 +19,108 @@ import numpy.ma as ma
 import seaborn as sns
 # Data/object handling imports
 import os
+import numpy as np
 from functools import partial #For feature function
 import pickle
 import csv
 import json
 
 
-model_string = "/path/to/model/"
-input_folder = "path/to/folder/full/of/cropped/DY96worms" 
+#model_string = "C:/Users/ebjam/Downloads/tile_embryo_detect_l_20230206.pt"
+#input_folder = ""
+#dy96_folder = os.joinpath(input_folder, "DY96")
 #%% Defining functions
+'''
+Workflow: For file in .result
+for each file load DY96 image. For each worm segmentation, load transposed worm seg and bbox, temp crop to bbox, and run detectors
 
+
+'''
+def load_info(input_folder):
+    # Empty list to contain all loaded resut files
+    todo = []
+    # Load all files out of the gui
+    result_list = [q for q in os.listdir(input_folder) if q.endswith(".result")]
+    
+    for result_file in result_list:
+        # Load result file per image
+        segmentation_record = os.path.join(input_folder, result_file)
+        file = open(segmentation_record,'rb')
+        seg_record = pickle.load(file)
+        todo.append(seg_record)
+    return(todo)
+
+def find_centers(theboxes):
+    centerpoints = []
+    for box in theboxes:
+        xyxy = box.xyxy.tolist()
+        xyxy = xyxy[0]
+        cx = (xyxy[0] + xyxy[2])/2
+        cy = (xyxy[1] + xyxy[3])/2
+        cp = Point(cx, cy)
+        centerpoints.append(cp)
+    return(centerpoints)
+
+def predict_embryos(todo, embryo_model_path, dy96_folder, embryos):
+    #If not predicting embryos, just return the todo with nothing added
+    if embryos == 0:
+        return(todo)
+    #Otherwise, I suppose we should predict embryos...
+    elif embryos == 1:
+        #Load model
+        model = YOLO(embryo_model_path)
+        # For image in imput images, load it's result file
+        for record in todo:
+            # Load the DY96 image to crop and analyze
+            input_image = record['input_image']
+            dy96_image_title = input_image[:-8] + "DY96.png"
+            dy96_path = os.path.join(dy96_folder, dy96_image_title)
+            dy96_image = cv2.imread(dy96_path)
+            #Now iterate over predicted worms
+            for segmentation in record['single_worms']:
+                # Crop in to specific worm bbox
+                bbox = segmentation['bbox']
+                cropped_to_bbox = dy96_image[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])]
+                # Predict embryos
+                results = model.predict(source = np.ascontiguousarray(cropped_to_bbox), save=False, save_txt=False)
+                # Get embryo centerpoints
+                centerlist = find_centers(results[0].boxes)
+                # Add both to dict
+                segmentation['embryo_bboxes'] = results[0].boxes
+                segmentation['embryo_centers'] = centerlist
+                
+                # Check worm segmentation for embryos
+                # Load segmentation, make sure it's closed
+                transposed_seg = segmentation['transposed_segmentation']
+                # Convert segmentation into a list of tuples to plot polygon.
+                seg_for_poly = [tuple(x) for x in transposed_seg]
+                if seg_for_poly[0] != seg_for_poly[len(seg_for_poly)-1]:
+                    seg_for_poly.append(seg_for_poly[0])
+                # Make polygon out of worm segmentation
+                polygon = Polygon(seg_for_poly)
+                internal_embryos = []
+                for point in centerlist:
+                    # If the point is inside the worm, then add the centerpoint to the internal embryo list.
+                    if polygon.contains(point):
+                        internal_embryos.append(point)
+                segmentation['internal_embryos'] = internal_embryos
+        return(todo)
+#%% 
+todo = load_info("C:/Users/ebjam/Downloads/gui_testers-20230213T211340Z-001/second_detector_testers_96/DY96/")
+
+todo2 = predict_embryos(todo, "C:/Users/ebjam/Downloads/tile_embryo_detect_l_20230206.pt", "C:/Users/ebjam/Downloads/gui_testers-20230213T211340Z-001/second_detector_testers_96/DY96/", embryos=1)
+
+
+
+
+#%%
 #Pre-prediction
 
 def load_model(model_string):
     model = YOLO(model_string)
     return(model)
+
+
 
 def list_out_images(input_folder):
     # Returns a dictionary where the keys are image names, and the values are the worm segmentations as a list
@@ -217,7 +304,7 @@ def detector(inputfolder,
              # Save selection
              save_csv = 1, save_pickle = 1, 
              # Model path definition
-             embryo_model = "",
+             embryo_model = "C:/Users/ebjam/Downloads/tile_embryo_detect_l_20230206.pt",
              microsporidia_model = "C:/Users/ebjam/Documents/GitHub/wormfind/100trees10branches_just_intensity.pickle"
              ):
     # Quick empty path throwback - shouldn't trigger with the default model paths!
@@ -239,4 +326,4 @@ def detector(inputfolder,
     print("Pickle saved.")
     return(final_dict)
 #%%
-res = detector(inputfolder = "input/folder/with/worm/predictions/and/cropped/dy96/", embryos = 1, microsporidia = 1)
+res = detector(inputfolder = "input/folder/with/worm/predictions/and/cropped/dy96/", embryos = 1, microsporidia = 0)

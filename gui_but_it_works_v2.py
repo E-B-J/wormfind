@@ -180,7 +180,9 @@ class ScrollableImage(tkinter.Frame):
     def draw_polygon(self, event):
         if not self.right_click_coords:
             self.right_click_coords = []
-        x, y = ((event.x, event.y))
+        x = self.cnvs.canvasx(event.x)
+        y = self.cnvs.canvasy(event.y)
+        #x, y = ((event.x, event.y))
         self.right_click_coords.append((x, y)) # !!! Format for polygon draw!
         #Show the point clicked on!
         self.cnvs.create_oval(x - 5, y - 5, x + 5, y + 5, fill="red", tags = "line")
@@ -208,30 +210,25 @@ class ScrollableImage(tkinter.Frame):
             # Get the selected polygon
             self.cnvs.delete("selected")
 
-            
     def select_polygon(self, event):
         # Get the item that was clicked
         item = self.cnvs.find_withtag("current")
         # Check if the item is a polygon
         if "mask" in self.cnvs.gettags(item):
             # Deselect any previously selected polygons
-            self.cnvs.dtag("selected", "all")
+            selected_items = self.cnvs.find_withtag('selected')
+            for item in selected_items:
+                self.cnvs.dtag(item, 'selected')
             # Add the "selected" tag to the clicked polygon
             self.cnvs.addtag_withtag("selected", item)
             # Change the fill color of the selected polygon to yellow
             self.cnvs.itemconfig(item, fill="yellow")
-            #coords = self.cnvs.coords(item)
-            #points = [(coords[i], coords[i+1]) for i in range(0, len(coords), 2)]
-            # create a new set of canvas objects for the points
-            #selected_points = []
-            #for x, y in points:
-                #point = event.cnvs.create_oval(x-2, y-2, x+2, y+2, fill="red", tags = ["selected", "points"])
-                #selected_points.append(point)
-
         else:
             # Deselect any previously selected polygons
-            self.cnvs.dtag("selected", "all")
-            self.cnvs.itemconfig("mask", fill="red")
+            selected_items = self.cnvs.find_withtag('selected')
+            for item in selected_items:
+                self.cnvs.dtag(item, 'selected')
+                self.cnvs.itemconfig(item, fill="red")
 
     def save_worms(self, event):
         annotations = {"single_worms": [], "input_image": ""}
