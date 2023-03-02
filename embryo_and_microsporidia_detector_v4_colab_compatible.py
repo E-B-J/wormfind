@@ -33,6 +33,30 @@ for each file load DY96 image. For each worm segmentation, load transposed worm 
 
 
 '''
+# Defining the detectors
+"""
+Created on Mon Feb  6 11:43:13 2023
+
+@author: ebjam
+"""
+# ML imports
+from ultralytics import YOLO
+from skimage import feature, future #RF tools
+# Image/array handling imports
+import cv2
+from shapely.geometry import Point, Polygon
+from PIL import Image, ImageDraw
+from matplotlib.path import Path
+#import rasterio.features
+import numpy
+import numpy.ma as ma
+# Data/object handling imports
+import os
+import numpy as np
+from functools import partial #For feature function
+import pickle
+import csv
+
 def load_info(input_folder):
     # Empty list to contain all loaded resut files
     todo = []
@@ -63,19 +87,25 @@ def find_centers(theboxes):
 def predict_embryos(todo, embryo_model_path, dy96_folder, embryos):
     #If not predicting embryos, just return the todo with nothing added
     if embryos == 0:
+        print("No embryo detection selected.")
         return(todo)
     #Otherwise, I suppose we should predict embryos...
     elif embryos == 1:
+        print("Starting embryo detection.")
         #Load model
         model = YOLO(embryo_model_path)
         # For image in imput images, load it's result file
+        image_no = 1
         for record in todo:
+            print("    Working on image " + str(image_no) + " of " + str(len(todo)))
+            image_no +=1
             # Load the DY96 image to crop and analyze
             input_image = record['input_image']
             dy96_image_title = input_image[:-8] + "DY96.png"
             dy96_path = os.path.join(dy96_folder, dy96_image_title)
             dy96_image = cv2.imread(dy96_path)
             #Now iterate over predicted worms
+            worm_number = 1
             for segmentation in record['single_worms']:
                 # Crop in to specific worm bbox
                 bbox = segmentation['bbox']
@@ -86,7 +116,6 @@ def predict_embryos(todo, embryo_model_path, dy96_folder, embryos):
                 centerlist = find_centers(results[0].boxes)
                 # Add both to dict
                 segmentation['embryo_bboxes'] = results[0].boxes
-
                 segmentation['embryo_centers'] = centerlist
                 # Check worm segmentation for embryos
                 # Load segmentation, make sure it's closed
@@ -107,6 +136,9 @@ def predict_embryos(todo, embryo_model_path, dy96_folder, embryos):
                 segmentation['internal_embryo_points'] = internal_embryos
                 segmentation['internal_embryo_centers'] = listarray
                 segmentation['#_internal_embryos'] = len(internal_embryos)
+                if worm_number % 2 == 0:
+                    print("        Within image embryo detection " + str(100 * (worm_number/len(record["single_worms"])))[:5] + "% complete.")
+                worm_number += 1
         return(todo)
 
 # Microsporidia - debugged up to prediction
@@ -116,7 +148,7 @@ sigma_min = 1
 features_func = partial(feature.multiscale_basic_features,
                         intensity=True, edges=False, texture=False,
                         sigma_min=sigma_min, sigma_max=sigma_max)
-    
+
 def predict_microsporidia(todo, microsporidia_model_path, dy96_folder, microsporidia):
     #If not predicting microsporidia, just return the todo with nothing added
     if microsporidia == 0:
@@ -127,11 +159,16 @@ def predict_microsporidia(todo, microsporidia_model_path, dy96_folder, microspor
         file = open(microsporidia_model_path,'rb')
         clf = pickle.load(file)
         # For image in imput images, load it's result file
+        image_no = 1
+        print("Starting microsporidia prediction")
         for record in todo:
             input_image = record['input_image']
             dy96_image_title = input_image[:-8] + "DY96.png"
             dy96_path = os.path.join(dy96_folder, dy96_image_title)
             dy96_image = cv2.imread(dy96_path)
+            print("    Working on image no " + str(image_no) + " of " + str(len(todo)))
+            image_no += 1
+            worm_number = 1
             for segmentation in record['single_worms']:
                 # Crop in to specific worm bbox
                 bbox = segmentation['bbox']
@@ -141,30 +178,53 @@ def predict_microsporidia(todo, microsporidia_model_path, dy96_folder, microspor
                 # Predict microsporidia
                 pred = future.predict_segmenter(gimage_features, clf)
                 del gimage_features
-                # Scale pred between 0 and 1 - means the mean of masked pred will be % infected
                 pred[pred == 1] = 0
-                pred[pred == 2] = 1
-                img = Image.new('L', (int(bbox[2]) - int(bbox[0]), int(bbox[3]) - int(bbox[1])), 0)
-                transposed_seg = segmentation['transposed_segmentation']
-                seg_for_poly = [tuple(x) for x in transposed_seg]
-                if seg_for_poly[0] != seg_for_poly[len(seg_for_poly)-1]:
-                    seg_for_poly.append(seg_for_poly[0])
-                ImageDraw.Draw(img).polygon(seg_for_poly, outline=1, fill=1)
-                mask_poly = numpy.array(img)
-                mx = ma.masked_array(pred, mask=mask_poly)
-                area = len(mx)
-                percent_infected = mx.mean()*100
-                segmentation['worm_area'] = area
+                pred[pred == 2] = 255
+                seg_l = segmentation["transposed_segmentation"].tolist()
+                seg_l.append(seg_l[0])
+                #Create lists of x and y values
+                xs, ys = zip(*seg_l) 
+                height, width = pred.shape[:2]
+                # Create a mesh grid representing the image dimensions
+                x_grid, y_grid = np.meshgrid(np.arange(width), np.arange(height))
+
+                # Convert the coordinates to a 1D array
+                x_coords = x_grid.reshape(-1)
+                y_coords = y_grid.reshape(-1)
+
+                # Create a path for the polygon
+                polygon_path = Path(np.column_stack([xs, ys]))
+
+                # Check which points are inside the polygon
+                points_inside_polygon = polygon_path.contains_points(np.column_stack([x_coords, y_coords]))
+
+                # Reshape the boolean array to match the image dimensions
+                mask = points_inside_polygon.reshape((height, width))
+                # Invert the mask - want pixels inside worm, not outside!
+                mask = ~mask
+                #Mask image
+                masked_image = pred.copy()
+                masked_image[mask] = np.nan
+                unique_values, value_counts = np.unique(masked_image, return_counts=True)
+                # Create a dictionary of {value: count} pairs
+                value_counts_dict = {value: count for value, count in zip(unique_values, value_counts)}
+                total_px = value_counts_dict[0] + value_counts_dict[255]
+                percent_infected = 100 * (value_counts_dict[255]/total_px)
+                segmentation['pred'] = pred
+                segmentation['worm_area_px'] = total_px
                 segmentation['percent_infected'] = percent_infected
+                if worm_number % 2 == 0:
+                  print("        Within image microsporidia prediction " + str(100 * (worm_number/len(record["single_worms"])))[:5] + "% complete.")
+                worm_number += 1
         return(todo)
 
 # Saving results
 def csv_saver(embryos, microsporidia, save_csv, finaldict, input_folder):
     if save_csv == 1:
         if embryos == 0 and microsporidia == 0:
-            print("No predictions saved, as no predictions generated, check 'embryos' or 'microsporidia' in the detector are set to 1 rather than default of 0.")
+            print("No predictions saved as no predictions generated, check 'embryos' or 'microsporidia' in the detector are set to 1 rather than default of 0.")
         else:
-            print("Saving results to csv.")
+            print("Saving results to csv within input/DY96 folder.")
             # Open csv to save stuff in
             savefile = open(os.path.join(input_folder,'demo_file.csv'), 'w', newline='')
             # Make writer write results to that save file
@@ -179,7 +239,7 @@ def csv_saver(embryos, microsporidia, save_csv, finaldict, input_folder):
                     writer.writerow(worm.values())
             # Close file after writing
             savefile.close()
-            print("csv saving complete.")
+            print("Saving complete.")
     return()
 
 # All-in-one detector with option handling
@@ -190,8 +250,8 @@ def detector(inputfolder,
              # Save selection
              save_csv = 1, save_pickle = 1, 
              # Model path definition
-             embryo_model = "C:/Users/ebjam/Downloads/tile_embryo_detect_l_20230206.pt",
-             microsporidia_model = "C:/Users/ebjam/Documents/GitHub/wormfind/100trees10branches_just_intensity.pickle"
+             embryo_model = "/content/drive/MyDrive/yolov8_out/embryo_detect_tile_l/detect/train/weights/tile_embryo_detect_l_20230206.pt",
+             microsporidia_model = "/content/drive/MyDrive/rf_models/100trees10branches_just_intensity.pickle"
              ):
     # Quick empty path throwback - shouldn't trigger with the default model paths!
     if len(embryo_model) < 3:
@@ -207,10 +267,11 @@ def detector(inputfolder,
     todo_with_microsporidia = predict_microsporidia(todo_with_embryos, microsporidia_model, inputfolder, microsporidia)
     csv_saver(embryos, microsporidia, save_csv, todo_with_microsporidia, inputfolder)
     # Save results as pickle for expanded datause
-    filehandler =  open(os.pathjoin(inputfolder + "predictions.pickle"))
+    print("Pickling results in input folder")
+    filehandler =  open(os.path.join(inputfolder + "predictions.pickle"))
     pickle.dump(todo_with_microsporidia, filehandler)
     filehandler.close()
-    print("Pickle saved.")
+    print("Pickle complete.")
     return(todo_with_microsporidia)
 #%%
 res = detector(inputfolder = "C:/Users/ebjam/Downloads/gui_testers-20230213T211340Z-001/second_detector_testers_96/DY96/", embryos = 1, microsporidia = 0)
