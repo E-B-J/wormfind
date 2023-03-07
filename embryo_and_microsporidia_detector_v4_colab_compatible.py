@@ -208,6 +208,9 @@ def predict_microsporidia(todo, microsporidia_model_path, dy96_folder, microspor
                 unique_values, value_counts = np.unique(masked_image, return_counts=True)
                 # Create a dictionary of {value: count} pairs
                 value_counts_dict = {value: count for value, count in zip(unique_values, value_counts)}
+                #Deal with zero microsporidia
+                if 255 not in value_counts_dict:
+                    value_counts_dict[255] = 0
                 total_px = value_counts_dict[0] + value_counts_dict[255]
                 percent_infected = 100 * (value_counts_dict[255]/total_px)
                 segmentation['pred'] = pred
@@ -268,7 +271,7 @@ def detector(inputfolder,
     csv_saver(embryos, microsporidia, save_csv, todo_with_microsporidia, inputfolder)
     # Save results as pickle for expanded datause
     print("Pickling results in input folder")
-    filehandler =  open(os.path.join(inputfolder + "predictions.pickle"))
+    filehandler =  open(os.path.join(inputfolder + "predictions.pickle"), "wb")
     pickle.dump(todo_with_microsporidia, filehandler)
     filehandler.close()
     print("Pickle complete.")

@@ -14,10 +14,10 @@ import numpy as np
 #import cv2
 
 # Import the package if saved in a different .py file else paste 
+# Trailing slash!!
+start_folder = "C:/Users/ebjam/Downloads/2023-03-04/2023-03-04/ai/"
 
-start_folder = "C:/Users/ebjam/Downloads/gui_testers-20230213T211340Z-001/second_detector_testers_96/"
-
-# Probably don't need to change full_image_pickle!
+# Probably don't need to change full_image_pickle!m
 full_image_pickle = "full_image_results.pickle"
 index_segmentation_record = os.path.join(start_folder, full_image_pickle)
 file = open(index_segmentation_record,'rb')
