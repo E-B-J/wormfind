@@ -11,6 +11,7 @@ from tkinter import messagebox
 import pickle
 import os
 import numpy as np
+import random
 #import cv2
 
 # Import the package if saved in a different .py file else paste 
@@ -40,6 +41,13 @@ def transpose_segmentation(bbox, segmentation):
     #Segmentation is now transposed to bbox
     return(segmentation)
 
+colors = [
+    '#FF1493', '#FF00FF', '#9400D3', '#4B0082', '#00FF00',
+    '#00FFFF', '#7FFFD4', '#66FF00', '#FFFF00', '#FF8C00',
+    '#FF69B4', '#FF00FF', '#00FF7F', '#00FFC4', '#00BFFF',
+    '#483D8B', '#8B00FF', '#FF4500', '#FF6347', '#FFD700',
+    '#FFA500', '#FFB6C1', '#00FA9A', '#FF1493', '#FF69B4'
+]
 #need to get the segs and image title from pickle.
 
 class ScrollableImage(tkinter.Frame):
@@ -65,7 +73,7 @@ class ScrollableImage(tkinter.Frame):
                     points.append(point[0])
                     point[1] = point[1] * 2208
                     points.append(point[1])
-                self.cnvs.create_polygon(points, fill='red', tag="mask")
+                self.cnvs.create_polygon(points, fill=random.choice(colors), tag="mask")
         # Vertical and Horizontal scrollbars
         self.v_scroll = tkinter.Scrollbar(self, orient='vertical', width=20)
         self.h_scroll = tkinter.Scrollbar(self, orient='horizontal', width=20)
@@ -146,17 +154,18 @@ class ScrollableImage(tkinter.Frame):
         
     def change_mode(self, mevent):
         all_poly_with_drawn = self.cnvs.find_withtag("mask") #Write something to make the drawn in polygons persist here!
-        for poly in all_poly_with_drawn:
-            fill_color = self.cnvs.itemcget(poly, 'fill')
-            if fill_color == "red":
-                self.cnvs.itemconfig(poly, fill="")
-                self.cnvs.delete("line")
-                self.polygon_visibility = False
-            else:
-                self.cnvs.itemconfig(poly, fill='red')
-                self.polygon_visibility = True
+            #fill_color = self.cnvs.itemcget(poly, 'fill')
+        if self.polygon_visibility == True:
+            for poly in all_poly_with_drawn:
+                self.cnvs.itemconfig(poly, fill="", outline = "")
+                self.cnvs.delete("line")mm
+            self.polygon_visibility = False
+        else:
+            for poly in all_poly_with_drawn:
+                self.cnvs.itemconfig(poly, fill=random.choice(colors), outline = "red")
+            self.polygon_visibility = True
                
-                '''      previous mode toggle:     - didn't preserve newly drawn polygons
+            '''      previous mode toggle:     - didn't preserve newly drawn polygons
                     
         if self.polygon_visibility:
             self.cnvs.delete("mask")
@@ -219,7 +228,7 @@ class ScrollableImage(tkinter.Frame):
             # Add the "selected" tag to the clicked polygon
             self.cnvs.addtag_withtag("selected", item)
             # Change the fill color of the selected polygon to yellow
-            self.cnvs.itemconfig(item, fill="yellow")
+            self.cnvs.itemconfig(item, outline="red", width=5)
             #coords = self.cnvs.coords(item)
             #points = [(coords[i], coords[i+1]) for i in range(0, len(coords), 2)]
             # create a new set of canvas objects for the points
@@ -231,7 +240,7 @@ class ScrollableImage(tkinter.Frame):
         else:
             # Deselect any previously selected polygons
             self.cnvs.dtag("selected", "all")
-            self.cnvs.itemconfig("mask", fill="red")
+            self.cnvs.itemconfig("mask", outline="red", width=0)
 
     def save_worms(self, event):
         annotations = {"single_worms": [], "input_image": ""}
