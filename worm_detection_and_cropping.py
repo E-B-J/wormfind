@@ -14,6 +14,19 @@ import pickle
 from shapely.geometry import Polygon
 
 def size_filter(full_image_results, filter_size):
+    """
+    
+
+    Parameters
+    ----------
+    full_image_results : Output from detector - can be before or after edge filter
+    filter_size : size in um^3 used for filter. Filter is done with <= (less than or equal)
+
+    Returns
+    -------
+    Size filtered results.
+
+    """
     for result in full_image_results['results']:
         print(len(result.masks.segments))
         small_shape_index = []
@@ -42,6 +55,59 @@ def size_filter(full_image_results, filter_size):
             result.masks.segments.pop(small_shape_index[w])
         print(len(result.masks.segments))   
     return(full_image_results)    
+
+def edge_filter(full_image_results, strictness = 0, edge_length = 1):
+    """
+    Parameters
+    ----------
+    full_image_results : YOLO predictions, can be before or after the size filter.
+    
+    strictness : optional - the extra number of rows in fromt he edge to filter.
+        The default is 0, i.e. only objects with pixels in the absolute edge. 
+        1 = edge two rows.
+        2 = edge three rows
+    
+    edge_length: how many vertices on the edge to count as an edge case - default 1
+    
+    Returns
+    -------
+    filtered results
+
+    """
+    for result in full_image_results['results']:
+        for q in range(0, len(result.masks.segments)):
+            mask = result.masks.segments[q]
+            tempmask = mask.copy()
+            for i in tempmask:
+                #Unnormalize to pixels, and scale to microns
+                i[0] = (i[0] * 2752)
+                i[1] = (i[1] * 2208)
+            edge_case_indexes = []
+            x_edge = []
+            y_edge = []
+            # Filter based on x coordinate and strictness
+            if i[0] <= 0 + strictness:
+                x_edge.append(i)
+            elif i[0] >= 2752 - strictness:
+                x_edge.append(i)
+            # Filter based on y coordinate and strictness
+            if i[1] <= 0 + strictness:
+                y_edge.append(i)
+            elif i[1] >= 2208 - strictness:
+                y_edge.append(i)
+            # Get number of vertices on the edge of image
+            edge_cases = len(x_edge) + len(y_edge)
+            # Record index of objects with too much edginess 
+            if edge_cases <= edge_length:
+                edge_case_indexes.append(q)
+        
+        # Reverse order sort the list of indexes - allows use to pop one after another without affecting important indexes
+        edge_case_indexes.sort(reverse=True)
+        # Pop
+        for w in range(0, len(edge_case_indexes)):
+            result.masks.segments.pop(edge_case_indexes[w])
+
+    return(full_image_results)
     
 def transpose_segmentation(bbox, segmentation, h, w):
     # Transposes segmentation coordinates to bbox.
@@ -129,7 +195,7 @@ def run_worm_detection(inputfolder, model_path):
                 annotationlist["worm_by_worm_annotations"].append(thisworm)
                 #Crop and save the worm from DY96 image
                 worm_crop = DY96img[int(bbox_use[1]):int(bbox_use[3]), int(bbox_use[0]):int(bbox_use[2])]
-                cv2.imwrite(crop_title, worm_crop) #!!! Currently saving doesn't work, not too sure why
+                cv2.imwrite(crop_title, worm_crop)
                 #Increase wormcount
                 wormcount += 1
             else:
@@ -148,11 +214,12 @@ inputpath = "C:/Users/ebjam/Downloads/2023-03-04/2023-03-04/ai/"
 pathtomodel = "C:/Users/ebjam/Downloads/best.pt"
 full_image_results, worm_by_worm_results, img_list = run_worm_detection(inputpath, pathtomodel)
 
-filtered_results = size_filter(full_image_results, 10000)
+size_filtered_results = size_filter(full_image_results, 13000)
+edge_filtered_results = edge_filter(size_filtered_results)
 
 #Save the results!!
 with open(inputpath + 'full_image_results.pickle', 'wb') as handle:
-    pickle.dump(filtered_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    pickle.dump(edge_filtered_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 with open(inputpath + 'worm_by_worm_results.pickle', 'wb') as handle:
     pickle.dump(worm_by_worm_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
