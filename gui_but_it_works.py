@@ -91,6 +91,9 @@ class ScrollableImage(tkinter.Frame):
         self.h_scroll.config(command=self.cnvs.xview)
         # Assign the region to be scrolled 
         self.cnvs.config(scrollregion=self.cnvs.bbox('all'))
+        
+        self.scale = 1.0  # Initial canvas scale factor
+        self.scale_factor = 1.2  # Scaling factor when zooming
         self.cnvs.bind_class(self.cnvs, "<MouseWheel>", self.mouse_scroll)
         self.cnvs.bind_class(self.cnvs, '<Shift-MouseWheel>', self.shift_scroll)  #!!!
         self.bind_all("<Right>", self.change_image_f)
@@ -103,12 +106,15 @@ class ScrollableImage(tkinter.Frame):
         self.bind_all('<c>', self.clear_draw_points)
 
     def mouse_scroll(self, evt):
-        if evt.state == 0 :
+        if evt.state == 0x0004:  # Check if the Ctrlmmmmm key is pressed (bitwise AND with 0x0004) :
             #self.cnvs.yview_scroll(-1*(evt.delta), 'units') # For MacOS
+            self.cnvs.xview_scroll(int(-1*(evt.delta/120)), 'units') # For windows
+        else:
             self.cnvs.yview_scroll(int(-1*(evt.delta/120)), 'units') # For windows
     
     def shift_scroll(self, sevt): #!!!
-        self.cnvs.xview_scroll((sevt.delta/120), "units") #!!!
+        if sevt.state == 0 :
+            self.cnvs.xview_scroll(int(-1*(sevt.delta / 120)), "units")
         
     
     def change_image_f(self, event):
@@ -158,7 +164,7 @@ class ScrollableImage(tkinter.Frame):
         if self.polygon_visibility == True:
             for poly in all_poly_with_drawn:
                 self.cnvs.itemconfig(poly, fill="", outline = "")
-                self.cnvs.delete("line")mm
+                self.cnvs.delete("line")
             self.polygon_visibility = False
         else:
             for poly in all_poly_with_drawn:
@@ -269,8 +275,7 @@ class ScrollableImage(tkinter.Frame):
                 pickle.dump(annotations, f, protocol=pickle.HIGHEST_PROTOCOL)
             worm_no +=1
         messagebox.showinfo("Save", "File saved.")
-
-
+        
 
 root = tk.Tk()
 
