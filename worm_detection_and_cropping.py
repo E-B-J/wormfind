@@ -210,7 +210,7 @@ def run_worm_detection(inputfolder, model_path):
     return(index_order, annotationlist, img_list)
 #%%
 #Run the model! Set inputs here! TRAIL SLASH ON DIRECTORIES
-inputpath = "C:/Users/ebjam/Downloads/2023-03-04/2023-03-04/ai/"
+inputpath = "E:/2023-03-14/"
 pathtomodel = "C:/Users/ebjam/Downloads/best.pt"
 full_image_results, worm_by_worm_results, img_list = run_worm_detection(inputpath, pathtomodel)
 

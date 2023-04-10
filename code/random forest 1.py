@@ -18,6 +18,7 @@ import cv2 #Image handling
 import joblib #Saving/loading model
 import matplotlib.lines as mlines #Visualization util
 import random
+import PIL
 
 #%%Functions
 '''
@@ -63,6 +64,30 @@ def test_train_division(path):
 a, b = test_train_division("D:/2022-10-24/correct_dy96/indi_worm/gravid/")
 '''
 #%%
+def multic_to_onec(image):
+    #Get size of image
+    w, h = image.size
+    #make array of zeros the size of input image
+    one_channel_rescale = np.empty((w, h))
+    #convert input image to pixels
+    pix = image.load()
+    #iterate through input image, read background/embryos/microsporidia
+    for i in range(0,image.size[0]):
+        for j in range(0, image.size[1]):
+            pixel_value = pix[i, j]
+            # Background = 1
+            if pixel_value == (0,0,0):
+                one_channel_rescale[i][j] = 0
+            # Microsporidia = 3
+            elif pixel_value == (0,0,255):
+                one_channel_rescale[i][j] = 1
+            #Background = 1
+            else:
+                one_channel_rescale[i][j] = 0.5
+    return(one_channel_rescale)
+#%%
+
+
 def images_and_truths(path):
     '''
     Parameters
@@ -107,7 +132,7 @@ def get_average_image_dimensions(images, path):
 sigma_max = 16
 sigma_min = 1
 features_func = partial(feature.multiscale_basic_features,
-                        intensity=True, edges=False, texture=True,
+                        intensity=True, edges=True, texture=True,
                         sigma_min=sigma_min, sigma_max=sigma_max)
 #%%
 def generate_features_concatinate_features_gts(images, path):
@@ -123,17 +148,19 @@ def generate_features_concatinate_features_gts(images, path):
     '''
     dim = get_average_image_dimensions(images, path)
     print(dim)
-    feature_cat = np.empty((dim[1], dim[0], 15))
-    traininglabels = np.zeros((dim[1], dim[0], 3))
+    feature_cat = np.empty((dim[1], dim[0], 20)) #!!!
+    traininglabels = np.zeros((dim[1], dim[0]))
     for r in range(0, len(images)):
         image = cv2.imread(path+images[r])
         gimage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        gimage_uniform = cv2.resize(gimage, dim, interpolation=cv2.INTER_AREA)
-        newfeatures = features_func(gimage_uniform)
+        #gimage_uniform = cv2.resize(gimage, dim, interpolation=cv2.INTER_AREA) #!!!!!!!!
+        newfeatures = features_func(gimage)
         feature_cat = np.concatenate((feature_cat, newfeatures), 0)
-        traininglabel = cv2.imread(path + "thresholded/"+images[r][:-4] + "threshold.png")
-        tl_uniform = cv2.resize(traininglabel, dim, interpolation = cv2.INTER_AREA)
-        traininglabels = np.concatenate((traininglabels, tl_uniform), 0)
+        traininglabel = PIL.Image.open(path + "thresholded/"+images[r])
+        one_channel_tl_uniform = multic_to_onec(traininglabel)
+        #Deal with making it one channel here!!
+        traininglabels = np.concatenate((traininglabels, one_channel_tl_uniform), 0)
+        print("Image " + str(r+1) + " complete.")
     return(feature_cat, traininglabels)
 
 def reshape_images_feature_gen_cat_out(path):
@@ -155,10 +182,14 @@ def reshape_images_feature_gen_cat_out(path):
 #%%Random Forest
 
 #Generate concatenated features and groundtruths
-feature_cat, gts = reshape_images_feature_gen_cat_out("D:/2022-10-24/correct_dy96/indi_worm/gravid/train/")
+feature_cat, gts = reshape_images_feature_gen_cat_out("C:/Users/ebjam/Documents/GitHub/wormfind/rf/trinary_rf/")
+
+#%%
 
 #Groundtruths were loaded as multichannel - split out one channel
 b,g,r = cv2.split(gts)
+
+#%%
 #Delete arrays we don't need to free up some memory
 del g
 del r
@@ -171,8 +202,8 @@ Class 1 is background
 Class 2 is microsporidia
 
 '''
-b[b == 0] = 1
-b[b == 255] = 2
+b[b == 0] = 1#!!!
+b[b == 255] = 2#!!!
 #%%
 #Make classifier
 clf = RandomForestClassifier(n_estimators=100, n_jobs=-1,

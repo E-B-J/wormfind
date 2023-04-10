@@ -16,7 +16,7 @@ import random
 
 # Import the package if saved in a different .py file else paste 
 
-start_folder = "C:/Users/ebjam/Downloads/gui_testers-20230213T211340Z-001/second_detector_testers_96/"
+start_folder = "E:/2023-03-14/"
 
 # Probably don't need to change full_image_pickle!
 full_image_pickle = "full_image_results.pickle"
@@ -133,7 +133,7 @@ class ScrollableImage(tkinter.Frame):
                 point[1] = point[1] * 2208
                 points.append(point[1])
                 
-            self.cnvs.create_polygon(points, fill='red', tags="mask")
+            self.cnvs.create_polygon(points, fill=random.choice(colors), tags="mask")
         
         self.cnvs.config(scrollregion=self.cnvs.bbox('all'))
         
@@ -154,7 +154,7 @@ class ScrollableImage(tkinter.Frame):
                     point[1] = point[1] * 2208
                     points.append(point[1])
                     
-                self.cnvs.create_polygon(points, fill='red', tags="mask")
+                self.cnvs.create_polygon(points, fill=random.choice(colors), tags="mask")
             
             self.cnvs.config(scrollregion=self.cnvs.bbox('all'))
         

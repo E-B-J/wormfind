@@ -93,11 +93,11 @@ def go_fishing(todo, dy96_folder, threshval, fish):
     
 #%%
 
-todo = load_info("C:/Users/ebjam/Downloads/2023-03-04/2023-03-04/ai/DY96/")
+todo = load_info("E:/2023-03-14/DY96/")
 
-fish = go_fishing(todo, "C:/Users/ebjam/Downloads/2023-03-04/2023-03-04/ai/DY96/", 35, 1)
+fish = go_fishing(todo, "E:/2023-03-14/DY96/", 35, 1)
 
 #%%
-filehandler =  open(os.path.join("C:/Users/ebjam/Downloads/2023-03-04/2023-03-04/ai/DY96/" + "auto_fish.pickle"), "wb")
+filehandler =  open(os.path.join("E:/2023-03-14/DY96/" + "auto_fish.pickle"), "wb")
 pickle.dump(fish, filehandler)
 filehandler.close()
