@@ -16,15 +16,15 @@ import random
 
 # Import the package if saved in a different .py file else paste 
 
-start_folder = "E:/2023-03-14/"
+start_folder = "C:/Users/ebjam/Documents/GitHub/wormfind/rf/combo/input/png/test+val/full/DAPI/"
 
 # Probably don't need to change full_image_pickle!
-full_image_pickle = "full_image_results.pickle"
+full_image_pickle = "full_image_results2.pickle"
 index_segmentation_record = os.path.join(start_folder, full_image_pickle)
 file = open(index_segmentation_record,'rb')
 seg_record = pickle.load(file)
 
-segs = seg_record["results"][2].masks.segments
+segs = seg_record["results"][2].masks.xyn
 
 def transpose_segmentation(bbox, segmentation):
     minx = bbox[0]
@@ -58,7 +58,7 @@ class ScrollableImage(tkinter.Frame):
         self.image_titles = kw.pop("im_titles", [])
         self.segs = kw.pop('segmentations', [])
         self.seg = self.segs[self.current_image_index] #Masks for speicific image
-        self.masks = self.seg.masks.segments
+        self.masks = self.seg.masks.xyn
         self.polygon_visibility = True
         self.right_click_coords = []
         super(ScrollableImage, self).__init__(master=master, **kw)
@@ -123,7 +123,7 @@ class ScrollableImage(tkinter.Frame):
         self.cnvs.delete("all")
         self.cnvs.create_image(0, 0, anchor='nw', image=self.image)
         self.seg = self.segs[self.current_image_index] #Masks for speicific image
-        self.masks = self.seg.masks.segments
+        self.masks = self.seg.masks.xyn
         for seg in self.masks:
             points = []
             for point in seg:
@@ -144,7 +144,7 @@ class ScrollableImage(tkinter.Frame):
             self.cnvs.delete("all")
             self.cnvs.create_image(0, 0, anchor='nw', image=self.image)
             self.seg = self.segs[self.current_image_index] #Masks for speicific image
-            self.masks = self.seg.masks.segments
+            self.masks = self.seg.masks.xyn
             for seg in self.masks:
                 points = []
                 for point in seg:
@@ -266,8 +266,8 @@ class ScrollableImage(tkinter.Frame):
             annotation["title"] = title
             annotation["wormID"] = save_title
             annotation["bbox"] = self.cnvs.bbox(polygon) # (Top left to bottom right)
-            annotation["segmentation"] = points
-            annotation["transposed_segmentation"] = transpose_segmentation(annotation["bbox"], annotation["segmentation"])
+            annotation["segmentation"] = points.copy()
+            annotation["transposed_segmentation"] = transpose_segmentation(annotation["bbox"], points)
             annotations["single_worms"].append(annotation)
             #worm_crop = DY96img[int(annotation["bbox"][1]):int(annotation["bbox"][3]), int(annotation["bbox"][0]):int(annotation["bbox"][2])]
             #cv2.imwrite(start_folder + "DY96/"+ save_title+ ".png", worm_crop)
@@ -275,7 +275,7 @@ class ScrollableImage(tkinter.Frame):
                 pickle.dump(annotations, f, protocol=pickle.HIGHEST_PROTOCOL)
             worm_no +=1
         messagebox.showinfo("Save", "File saved.")
-        
+
 
 root = tk.Tk()
 

@@ -13,6 +13,7 @@ import cv2
 import pickle
 from shapely.geometry import Polygon
 
+
 def size_filter(full_image_results, filter_size):
     """
     
@@ -28,10 +29,10 @@ def size_filter(full_image_results, filter_size):
 
     """
     for result in full_image_results['results']:
-        print(len(result.masks.segments))
+        #print(len(result.masks.xyn))
         small_shape_index = []
-        for q in range(0, len(result.masks.segments)):
-            mask = result.masks.segments[q]
+        for q in range(0, len(result.masks.xyn)):
+            mask = result.masks.xyn[q]
             tempmask = mask.copy()
             #print(tempmask)
             for i in tempmask:
@@ -52,8 +53,8 @@ def size_filter(full_image_results, filter_size):
         #Make SSI go from high to low, then pop in order
         small_shape_index.sort(reverse=True)
         for w in range(0, len(small_shape_index)):
-            result.masks.segments.pop(small_shape_index[w])
-        print(len(result.masks.segments))   
+            result.masks.xyn.pop(small_shape_index[w])
+        #print(len(result.masks.xyn))   
     return(full_image_results)    
 
 def edge_filter(full_image_results, strictness = 0, edge_length = 1):
@@ -75,8 +76,8 @@ def edge_filter(full_image_results, strictness = 0, edge_length = 1):
 
     """
     for result in full_image_results['results']:
-        for q in range(0, len(result.masks.segments)):
-            mask = result.masks.segments[q]
+        for q in range(0, len(result.masks.xyn)):
+            mask = result.masks.xyn[q]
             tempmask = mask.copy()
             for i in tempmask:
                 #Unnormalize to pixels, and scale to microns
@@ -105,7 +106,7 @@ def edge_filter(full_image_results, strictness = 0, edge_length = 1):
         edge_case_indexes.sort(reverse=True)
         # Pop
         for w in range(0, len(edge_case_indexes)):
-            result.masks.segments.pop(edge_case_indexes[w])
+            result.masks.xyn.pop(edge_case_indexes[w])
 
     return(full_image_results)
     
@@ -127,6 +128,10 @@ def transpose_segmentation(bbox, segmentation, h, w):
     #Segmentation is now transposed to bbox
     return(segmentation)
     
+def run_model(model, source):
+    result = model.predict(source = source, classes = [1])
+    return(result)
+
 def run_worm_detection(inputfolder, model_path):
     #Load model
     model = YOLO(model_path)
@@ -147,15 +152,15 @@ def run_worm_detection(inputfolder, model_path):
         img = cv2.imread(inputfolder + title)
         h, w, c = img.shape
         #Run prediction, only outputting worm class
-        results = model.predict(source = img, classes = [1])
+        results = run_model(model, img)
+        #results = model.predict(source = img, classes = [1])
         #Save results, prep DY96 data for cropping -- should move to GUI!
         #!! Size filter here!!
         full_image_results.append(results[0])
-        
         boxes = results[0].boxes
         masks = results[0].masks
-        segments = masks.segments
-        DY96img = cv2.imread(inputfolder + "DY96/" + title[:-8] + "DY96.png")#load dy96 image
+        segments = masks.xyn
+        DY96img = cv2.imread(inputfolder + "DY96/" + title[:-4] + "DY96.png")#load dy96 image
         wormcount = 1
         #Make crops folder!
         for e in range(0, len(boxes)):
@@ -210,16 +215,16 @@ def run_worm_detection(inputfolder, model_path):
     return(index_order, annotationlist, img_list)
 #%%
 #Run the model! Set inputs here! TRAIL SLASH ON DIRECTORIES
-inputpath = "E:/2023-03-14/"
+inputpath = "C:/Users/ebjam/Documents/GitHub/wormfind/rf/combo/input/png/test+val/full/DAPI/"
 pathtomodel = "C:/Users/ebjam/Downloads/best.pt"
 full_image_results, worm_by_worm_results, img_list = run_worm_detection(inputpath, pathtomodel)
 
-size_filtered_results = size_filter(full_image_results, 13000)
-edge_filtered_results = edge_filter(size_filtered_results)
+size_filtered_results = size_filter(full_image_results, 15000)
+edge_filtered_results = edge_filter(size_filtered_results, strictness = 25)
 
 #Save the results!!
-with open(inputpath + 'full_image_results.pickle', 'wb') as handle:
+with open(inputpath + 'full_image_results2.pickle', 'wb') as handle:
     pickle.dump(edge_filtered_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-with open(inputpath + 'worm_by_worm_results.pickle', 'wb') as handle:
+with open(inputpath + 'worm_by_worm_results2.pickle', 'wb') as handle:
     pickle.dump(worm_by_worm_results, handle, protocol=pickle.HIGHEST_PROTOCOL)
