@@ -35,6 +35,18 @@ for(n=0; n<num_files; n++) {
 		//Channel 2 - DY96
 		Stack.setChannel(2);
 		saveAs("png",dy96_path + basename + "DY96.png");
-    	run("Close");
+    	//Check if there is a third channel
+        nChannels = nSlices = nFrames = 0;
+        getDimensions(nChannels, nSlices, nFrames);
+        if (nChannels = 3) {
+        	File.makeDirectory(path + "/cha3/");
+			cha3_path = path + "cha3\\";
+            //Channel 3 - Third channel
+            Stack.setChannel(3);
+            saveAs("png", path + basename + "cha3.png");
+        }
+        run("Close");
+    }
+}
 	}
 }
