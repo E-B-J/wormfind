@@ -126,7 +126,7 @@ keypoint_annotations["categories"] = coco["categories"]
 keypoint_annotations["categories"][3]["keypoints"] = ["pharynx"]
 keypoint_annotations["licenses"] = coco["licenses"]
 keypoint_annotations["info"] = coco["info"]
-    
-#%%
+
+#Save coco
 with open("C:/Users/ebjam/Documents/GitHub/wormfind/keypoint_train_coco_annotations.json", "w") as json_file:
     json.dump(keypoint_annotations, json_file)
