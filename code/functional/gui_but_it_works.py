@@ -16,7 +16,7 @@ import random
 
 # Import the package if saved in a different .py file else paste 
 
-start_folder = "C:/Users/ebjam/Documents/GitHub/wormfind/rf/combo/input/png/test+val/full/DAPI/"
+start_folder = "C:/Users/ebjam/Desktop/worm_find_store_jic/rf/combo/input/png/test+val/full/DAPI/"
 
 # Probably don't need to change full_image_pickle!
 full_image_pickle = "full_image_results2.pickle"
