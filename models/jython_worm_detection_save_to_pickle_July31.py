@@ -24,13 +24,16 @@ def getWorms(image):
 	detected_worms = [] 
 	#Duplicate image
 	dup = Duplicator().run(image)
-	IJ.run(dup, "16-bit", "")
+	# Automated contrast enhancement
+	IJ.run(dup, "Enhance Local Contrast (CLAHE)", "blocksize=127 histogram=256 maximum=10 mask=*None* fast_(less_accurate)");
+	# De-noise the contrast adjustment with a soft gaussian filter
+	IJ.run(dup, "Gaussian Blur...", "sigma=2");
 	# Divide foreground and background
 	IJ.setMinAndMax(dup, 8000, 20000)
-	IJ.setThreshold(dup, 10000, 65535)
+	IJ.setThreshold(dup, 15000, 65535)
     # Try to seperate worms
 	IJ.run(dup, "Convert to Mask", "")
-	IJ.run(dup, "Options...", "iterations=3 count=1 black do=Erode")
+	IJ.run(dup, "Options...", "iterations=5 count=1 black do=Open")
 	IJ.run(dup, "Options...", "iterations=3 count=2 black do=Erode")
 	IJ.run(dup, "Sharpen", "")
 	IJ.run(dup, "Sharpen", "")
@@ -38,7 +41,7 @@ def getWorms(image):
 	IJ.run(dup, "Find Edges", "")
 	IJ.run(dup, "Fill Holes", "")
     # ID particles
-	IJ.run(dup, "Analyze Particles...", "size=1000-30000 circularity=0.00-1.00 show=Nothing add")
+	IJ.run(dup, "Analyze Particles...", "size=800-300000 circularity=0.00-1.00 show=Nothing add")
 	roiManager = RoiManager.getInstance()
 	if roiManager is None:
 		roiManager = RoiManager()
