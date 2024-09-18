@@ -20,9 +20,9 @@ from scipy import ndimage
 import joblib
 from functools import partial
 
-input_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/e_f_independent/TimePoint_1/dapi/one_field/'
-dy96_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/e_f_independent/TimePoint_1/dy96/one_field/'
-fish_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/e_f_independent/TimePoint_1/fish/one_field/'
+input_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/Sep16_p2_detergent_test/TimePoint_1/dapi/one_field/'
+dy96_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/Sep16_p2_detergent_test/TimePoint_1/dy96/one_field/'
+fish_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/Sep16_p2_detergent_test/TimePoint_1/fish/one_field/'
 output_folder = input_folder + "vesselness/"
 worm_by_worm = input_folder + "worm_by_worm/"
 d_worm_by_worm = dy96_folder + "worm_by_worm/"
@@ -330,10 +330,8 @@ sns.violinplot(x='col', y='dirty_fish%', cut=0, inner=None, data=ultra_worms, hu
 sns.pointplot(x='col', y='dirty_fish%', join=False, hue='line', dodge=0.3, palette='dark', data=ultra_worms)
 
 #%%
-
-
-with open(os.path.join(input_folder,'awr_n2_rep_3_1_cheese_aug30.pkl'), 'wb') as file:
-    pickle.dump(n2_vs_awr73, file)
+with open(os.path.join(input_folder,'n2_lv4440_2mNp_sep16_p2.pkl'), 'wb') as file:
+    pickle.dump(detections, file)
 
 #%%
 print(len(well_df))
