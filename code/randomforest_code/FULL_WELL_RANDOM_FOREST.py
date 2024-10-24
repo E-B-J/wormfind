@@ -9,8 +9,9 @@ import os, cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from functools import partial
-from skimage import feature, future, color
+from skimage import feature
 import pandas as pd
+from matplotlib.patches import Polygon
 
 # Frame = 1
 # Background = 2
@@ -110,17 +111,80 @@ features_func = partial(
     sigma_min = sig_min,
     sigma_max = sig_max,
     )
-
-for one in dapi_ones:
-    img = cv2.imread(os.path.join(image_path, one), -1)
+detections = []
+for filename in dapi_ones:
+    img = cv2.imread(os.path.join(image_path, filename), -1)
+    img_holder = cv2.imread(os.path.join(image_path, filename), -1)
     img_small = cv2.resize(img, (1024, 1024))
     features = features_func(img_small)
     X = features.reshape(-1, features.shape[-1])
     df_features = pd.DataFrame(X)
     worm_prediction = best_rf.predict(df_features)
     worm_prediction_img = worm_prediction.reshape((1024,1024))
-    plt.imshow(worm_prediction_img)
+    worm_prediction_img = cv2.resize(worm_prediction_img, (4096, 4096), interpolation = cv2.INTER_NEAREST)
+    just_worms = np.where(worm_prediction_img == 3, 255, 0).astype(np.uint8)
+    plt.imshow(just_worms)
+    plt.show()
+    contours, _ = cv2.findContours(just_worms, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    empty_image = np.zeros((4096, 4096), dtype=np.uint8)
+
+# Draw contours on the empty image
+    cv2.drawContours(empty_image, contours, -1, (255), thickness=cv2.FILLED)
+# Display the contours on the empty image
+    plt.imshow(empty_image, cmap='gray')
+    plt.title('Contours')
+    plt.axis('off')
+    plt.show()
+    img_holder = cv2.resize(img, (4096, 4096))
+    for contour in contours:
+        bbox = cv2.boundingRect(contour)
+        x, y, w, h = bbox
+        crop = img_holder[y:y+h, x:x+w]
+        plt.imshow(crop)
+        plt.show()
+    
+    #%%
+    namer = 0
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        if area > 1000:
+            measurements = {}
+            measurements['image'] = filename
+            lookup = filename + "_worm_" + str(namer)
+            measurements['lookup'] = lookup
+            color = [q/255 for q in list(np.random.choice(range(255), size=3))]
+            polygon = Polygon(contour[:, 0, :], closed=True, fill=True, fc=color, ec='k', alpha=1)
+            #ax.add_patch(polygon)
+            measurements['area'] = area
+            perimeter = cv2.arcLength(contour, True)
+            measurements['perimeter'] = perimeter
+
+            circularity = (4 * np.pi * area) / (perimeter ** 2) if perimeter > 0 else 0
+            measurements['circularity'] = circularity
+            
+            hull = cv2.convexHull(contour)
+            hull_area = cv2.contourArea(hull)
+            solidity = area / hull_area if hull_area > 0 else 0
+            measurements['solidity'] = solidity
+            bbox = cv2.boundingRect(contour)
+            measurements['bbox'] = bbox
+            x, y, w, h = bbox
+            crop = img[y:y+h, x:x+w]
+            plt.imshow(crop)
+            plt.show()
+            measurements['contour'] = contour
+            detections.append(measurements)
+            namer += 1
     plt.show()
 
+#%%
+big_bbox = [q*4 for q in bbox]
+big_contour = contour * 4
+#%%
+target_value = 3
+filtered_image = np.where(worm_prediction_img == target_value, 255, 0)
+plt.imshow(filtered_image)
+plt.show()
 
 

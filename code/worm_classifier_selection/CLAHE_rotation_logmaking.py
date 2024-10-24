@@ -8,10 +8,12 @@ import cv2, os
 import matplotlib.pyplot as plt
 from scipy import ndimage
 
-dy_wbw_path = "E:/toronto_microscopy/ixmc/Aug 3 Slow Curve_Plate_2142/Aug 3 Slow Curve_Plate_2142/TimePoint_1/dy96/one_field/worm_by_worm/"
+dy_wbw_path = "E:/toronto_microscopy/ixmc/Sep16_detergent_tests/selected_for_dy96_forest/"
 clahe_path = dy_wbw_path + "clahe/"
+no_clahe = dy_wbw_path + "no_clahe/"
 os.makedirs(clahe_path, exist_ok=True)
-dy_worm_by_worm = [q for q in os.listdir(dy_wbw_path) if q.endswith("png")]
+os.makedirs(no_clahe, exist_ok=True)
+dy_worm_by_worm = [q for q in os.listdir(dy_wbw_path) if q.endswith("TIF")]
 log = []
 for worm in dy_worm_by_worm:
     this_one = {}
@@ -28,15 +30,19 @@ for worm in dy_worm_by_worm:
     if ar > 3:
         this_one['rotated'] = True
         rotate_45 = ndimage.rotate(final_img, 45, reshape = True, order = 0)
+        raw_rotate_45 = ndimage.rotate(image, 45, reshape = True, order = 0)
         rotate_45_dims = [rotate_45.shape[0], rotate_45.shape[1]]
         this_one['rotation_dims'] = rotate_45_dims
         to_save = cv2.resize(rotate_45, (320, 320))
+        no_clahe_img = cv2.resize(raw_rotate_45, (320, 320))
     else:
         this_one['rotated'] = False
         this_one['rotation_dims'] = (0,0)
         to_save = cv2.resize(final_img, (320, 320))
+        no_clahe_img = cv2.resize(image, (320, 320))
     log.append(this_one)
     cv2.imwrite(clahe_path + "clahe_roto_resize" + worm, to_save)
+    cv2.imwrite(no_clahe + "roto_resize" + worm, no_clahe_img)
         
 #%%
 import gzip, pickle

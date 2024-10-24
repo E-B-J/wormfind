@@ -19,10 +19,13 @@ from matplotlib.patches import Polygon
 from scipy import ndimage
 import joblib
 from functools import partial
+import pandas as pd
+import pickle
 
-input_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/Sep16_p2_detergent_test/TimePoint_1/dapi/one_field/'
-dy96_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/Sep16_p2_detergent_test/TimePoint_1/dy96/one_field/'
-fish_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/Sep16_p2_detergent_test/TimePoint_1/fish/one_field/'
+#%%
+input_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/Sep16_p1/Sep16_p1_detergent_test/TimePoint_1/dapi/one_field/'
+dy96_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/Sep16_p1/Sep16_p1_detergent_test/TimePoint_1/dy96/one_field/'
+fish_folder = 'E:/toronto_microscopy/ixmc/Sep16_detergent_tests/Sep16_p1/Sep16_p1_detergent_test/TimePoint_1/fish/one_field/'
 output_folder = input_folder + "vesselness/"
 worm_by_worm = input_folder + "worm_by_worm/"
 d_worm_by_worm = dy96_folder + "worm_by_worm/"
@@ -79,8 +82,8 @@ for filename in os.listdir(input_folder):
         this_well = []
         print(filename)
         file_path = os.path.join(input_folder, filename)
-        dy_filename = filename.replace("w1_combo", "w2_combo")
-        fish_filename = filename.replace("w1_combo", "w3_combo")
+        dy_filename = filename
+        fish_filename = filename
         image = cv2.imread(file_path, -1)
         dimage = cv2.imread(dy96_folder + dy_filename, -1)
         fimage = cv2.imread(fish_folder + fish_filename, -1)
@@ -330,7 +333,7 @@ sns.violinplot(x='col', y='dirty_fish%', cut=0, inner=None, data=ultra_worms, hu
 sns.pointplot(x='col', y='dirty_fish%', join=False, hue='line', dodge=0.3, palette='dark', data=ultra_worms)
 
 #%%
-with open(os.path.join(input_folder,'n2_lv4440_2mNp_sep16_p2.pkl'), 'wb') as file:
+with open(os.path.join(input_folder,'n2_lv4440_2mNp_sep16_p1.pkl'), 'wb') as file:
     pickle.dump(detections, file)
 
 #%%
