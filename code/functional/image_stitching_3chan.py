@@ -128,9 +128,36 @@ def stitch_paths(base_paths):
 
 # --- Main loop ---
 if __name__ == '__main__':
+    
+
     base_paths = [
-        "D:/toronto_microscopy/ixmc/ad_4x_l4440/AD1-cb4037-4x-48hpi_Plate_2643/TimePoint_1/",
-        "D:/toronto_microscopy/ixmc/ad_4x_l4440/AD2-cb4037-4x-48hpi_Plate_2642/TimePoint_1/",
-        "D:/toronto_microscopy/ixmc/ad_4x_l4440/AD3-cb4037-4x-48hpi_Plate_2641/TimePoint_1/",
-    ]
+            #"H:/rep2/OneDrive_6_6-17-2025/p1r2g3_Plate_2842/TimePoint_1/",
+            #"H:/rep2/OneDrive_6_6-17-2025/p2r2g5_Plate_2865/TimePoint_1/",
+            #"H:/rep2/OneDrive_3_6-17-2025/p3r2g3_Plate_2821/TimePoint_1/",
+            #"H:/rep2/OneDrive_3_6-17-2025/p4r2g3_Plate_2823/TimePoint_1/",
+            #"H:/rep2/OneDrive_4_6-17-2025/p5r2g3_Plate_2804/TimePoint_1/",
+            #"H:/rep2/OneDrive_4_6-17-2025/p6r2g3_Plate_2824/TimePoint_1/",
+            #"H:/rep2/7_8/p7r2g4_Plate_2801/TimePoint_1/",
+            #"H:/rep2/7_8/p8r2g5_Plate_2864/TimePoint_1/",
+            #"H:/rep2/9_10/p9r2g4_Plate_2803/TimePoint_1/",
+            #"H:/rep2/9_10/p10r2g4_Plate_2802/TimePoint_1/",
+            #"H:/rep2/11_12/p11r2g5_Plate_2863/TimePoint_1/",
+            #"H:/rep2/11_12/p12r2g5_Plate_2862/TimePoint_1/",
+            #"H:/rep2/13_14/p13r2g5_Plate_2861/TimePoint_1/",
+            #"H:/rep2/13_14/p14r2g5_Plate_2843/TimePoint_1/",
+            #"H:/rep2/OneDrive_1_6-17-2025/p15r2g5_Plate_2844/TimePoint_1/",
+            #"H:/rep2/OneDrive_1_6-17-2025/p16r2g5_Plate_2845/TimePoint_1/",
+            #"H:/rep1/p2r1g3_Plate_2841/p2r1g3_Plate_2841/TimePoint_1/",
+            "H:/rep3/1_2/p1r3g7_Plate_3022/TimePoint_1/",
+            "H:/rep3/1_2/p2r3g8_Plate_2901/TimePoint_1/",
+            "H:/rep3/3_4/p3r3g7_Plate_2902/TimePoint_1/",
+            "H:/rep3/3_4/p4r3g7_Plate_2903/TimePoint_1/",
+            "H:/rep3/5_6/p5r3g7_Plate_2921/TimePoint_1/",
+            "H:/rep3/5_6/p6r3g8_Plate_2922/TimePoint_1/",
+            
+    ]       
     stitch_paths(base_paths)
+    
+#%%
+
+        
